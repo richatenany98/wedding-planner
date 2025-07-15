@@ -1,4 +1,6 @@
 import { users, events, guests, tasks, budgetItems, type User, type InsertUser, type Event, type InsertEvent, type Guest, type InsertGuest, type Task, type InsertTask, type BudgetItem, type InsertBudgetItem } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -346,4 +348,149 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getEvents(): Promise<Event[]> {
+    return await db.select().from(events);
+  }
+
+  async getEvent(id: number): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
+  }
+
+  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+    const [event] = await db
+      .insert(events)
+      .values(insertEvent)
+      .returning();
+    return event;
+  }
+
+  async updateEvent(id: number, eventUpdate: Partial<Event>): Promise<Event | undefined> {
+    const [event] = await db
+      .update(events)
+      .set(eventUpdate)
+      .where(eq(events.id, id))
+      .returning();
+    return event || undefined;
+  }
+
+  async deleteEvent(id: number): Promise<boolean> {
+    const result = await db.delete(events).where(eq(events.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getGuests(): Promise<Guest[]> {
+    return await db.select().from(guests);
+  }
+
+  async getGuest(id: number): Promise<Guest | undefined> {
+    const [guest] = await db.select().from(guests).where(eq(guests.id, id));
+    return guest || undefined;
+  }
+
+  async createGuest(insertGuest: InsertGuest): Promise<Guest> {
+    const [guest] = await db
+      .insert(guests)
+      .values(insertGuest)
+      .returning();
+    return guest;
+  }
+
+  async updateGuest(id: number, guestUpdate: Partial<Guest>): Promise<Guest | undefined> {
+    const [guest] = await db
+      .update(guests)
+      .set(guestUpdate)
+      .where(eq(guests.id, id))
+      .returning();
+    return guest || undefined;
+  }
+
+  async deleteGuest(id: number): Promise<boolean> {
+    const result = await db.delete(guests).where(eq(guests.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getTasks(): Promise<Task[]> {
+    return await db.select().from(tasks);
+  }
+
+  async getTask(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task || undefined;
+  }
+
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await db
+      .insert(tasks)
+      .values(insertTask)
+      .returning();
+    return task;
+  }
+
+  async updateTask(id: number, taskUpdate: Partial<Task>): Promise<Task | undefined> {
+    const [task] = await db
+      .update(tasks)
+      .set(taskUpdate)
+      .where(eq(tasks.id, id))
+      .returning();
+    return task || undefined;
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+    const result = await db.delete(tasks).where(eq(tasks.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getBudgetItems(): Promise<BudgetItem[]> {
+    return await db.select().from(budgetItems);
+  }
+
+  async getBudgetItem(id: number): Promise<BudgetItem | undefined> {
+    const [budgetItem] = await db.select().from(budgetItems).where(eq(budgetItems.id, id));
+    return budgetItem || undefined;
+  }
+
+  async createBudgetItem(insertBudgetItem: InsertBudgetItem): Promise<BudgetItem> {
+    const [budgetItem] = await db
+      .insert(budgetItems)
+      .values(insertBudgetItem)
+      .returning();
+    return budgetItem;
+  }
+
+  async updateBudgetItem(id: number, budgetItemUpdate: Partial<BudgetItem>): Promise<BudgetItem | undefined> {
+    const [budgetItem] = await db
+      .update(budgetItems)
+      .set(budgetItemUpdate)
+      .where(eq(budgetItems.id, id))
+      .returning();
+    return budgetItem || undefined;
+  }
+
+  async deleteBudgetItem(id: number): Promise<boolean> {
+    const result = await db.delete(budgetItems).where(eq(budgetItems.id, id));
+    return result.rowCount > 0;
+  }
+}
+
+export const storage = new DatabaseStorage();

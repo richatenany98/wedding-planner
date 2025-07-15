@@ -28,11 +28,12 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Connect-pg-simple for PostgreSQL session storage
 
 ### Database Schema
-The application uses four main entities:
+The application uses five main entities:
 - **Users**: Authentication and role management
 - **Events**: Wedding events (Haldi, Mehndi, Sangeet, Wedding, Reception)
 - **Guests**: Guest information with RSVP tracking
 - **Tasks**: Kanban-style task management with categories
+- **Budget Items**: Vendor expense tracking with payment status
 
 ## Key Components
 
@@ -45,7 +46,8 @@ The application uses four main entities:
 - **RoleSelector**: Dynamic role switching for different user perspectives
 
 ### Backend Components
-- **Storage Layer**: Abstraction layer with in-memory implementation for development
+- **Database Layer**: PostgreSQL database with Drizzle ORM for data persistence
+- **Storage Layer**: Database storage implementation with full CRUD operations
 - **Routes**: RESTful API endpoints for all CRUD operations
 - **Validation**: Zod schemas for request/response validation
 - **Error Handling**: Centralized error handling middleware
@@ -58,8 +60,8 @@ The application uses four main entities:
 
 1. **Client Request**: React components make API calls using TanStack Query
 2. **API Layer**: Express routes validate requests and delegate to storage layer
-3. **Storage Layer**: Abstract storage interface with in-memory implementation
-4. **Database**: PostgreSQL with Drizzle ORM for production (configurable)
+3. **Storage Layer**: Database storage implementation using Drizzle ORM
+4. **Database**: PostgreSQL with Neon Database for persistent data storage
 5. **Response**: JSON responses with proper error handling
 
 ## External Dependencies
@@ -95,8 +97,10 @@ The application uses four main entities:
 ### Key Features
 - **Multi-Event Support**: Manage multiple wedding events (Haldi, Mehndi, Sangeet, Wedding, Reception)
 - **Role-Based Views**: Different perspectives for bride, groom, planner, parents, family
-- **Guest Management**: Comprehensive guest tracking with RSVP status
-- **Task Management**: Kanban-style boards with categorized tasks
+- **Guest Management**: Comprehensive guest tracking with RSVP status and bulk import
+- **Task Management**: Kanban-style boards with categorized tasks and predefined templates
+- **Budget Management**: Vendor expense tracking with payment status monitoring
+- **Database Integration**: PostgreSQL with Drizzle ORM for persistent data storage
 - **Export Functionality**: CSV export for guests and tasks
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **Indian Wedding Focus**: Culturally appropriate colors, events, and terminology
