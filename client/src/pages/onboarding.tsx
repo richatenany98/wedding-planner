@@ -16,7 +16,8 @@ import { apiRequest } from '@/lib/queryClient';
 const onboardingSchema = z.object({
   brideName: z.string().min(1, 'Bride name is required'),
   groomName: z.string().min(1, 'Groom name is required'),
-  weddingDate: z.string().min(1, 'Wedding date is required'),
+  weddingStartDate: z.string().min(1, 'Wedding start date is required'),
+  weddingEndDate: z.string().min(1, 'Wedding end date is required'),
   venue: z.string().min(1, 'Venue is required'),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
@@ -34,13 +35,15 @@ interface OnboardingProps {
 }
 
 const weddingFunctions = [
-  { id: 'mehendi', label: 'Mehendi Ceremony', description: 'Henna application ceremony' },
-  { id: 'haldi', label: 'Haldi Ceremony', description: 'Turmeric blessing ceremony' },
-  { id: 'sangeet', label: 'Sangeet', description: 'Musical celebration with dance' },
-  { id: 'ceremony', label: 'Wedding Ceremony', description: 'Main wedding rituals' },
-  { id: 'reception', label: 'Reception', description: 'Post-wedding celebration' },
-  { id: 'engagement', label: 'Engagement', description: 'Ring exchange ceremony' },
-  { id: 'cocktail', label: 'Cocktail Party', description: 'Pre-wedding cocktail event' },
+  { id: 'engagement', label: 'Engagement Party', description: 'Celebrating the engagement' },
+  { id: 'bridal-shower', label: 'Bridal Shower', description: 'Pre-wedding celebration for the bride' },
+  { id: 'bachelor-party', label: 'Bachelor Party', description: 'Groom\'s pre-wedding celebration' },
+  { id: 'bachelorette-party', label: 'Bachelorette Party', description: 'Bride\'s pre-wedding celebration' },
+  { id: 'rehearsal-dinner', label: 'Rehearsal Dinner', description: 'Pre-wedding dinner with close family' },
+  { id: 'ceremony', label: 'Wedding Ceremony', description: 'Main wedding ceremony' },
+  { id: 'cocktail-hour', label: 'Cocktail Hour', description: 'Pre-reception drinks and appetizers' },
+  { id: 'reception', label: 'Reception', description: 'Wedding reception and dinner' },
+  { id: 'after-party', label: 'After Party', description: 'Late-night celebration after reception' },
 ];
 
 const themes = [
@@ -52,12 +55,14 @@ const themes = [
   { value: 'vintage', label: 'Vintage', color: 'bg-orange-500' },
 ];
 
-const indianStates = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 
-  'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 
-  'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 
-  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 
-  'Uttarakhand', 'West Bengal', 'Delhi', 'Chandigarh', 'Puducherry'
+const usStates = [
+  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 
+  'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 
+  'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 
+  'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 
+  'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 
+  'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 
+  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming', 'District of Columbia'
 ];
 
 export default function Onboarding({ user, onComplete }: OnboardingProps) {
@@ -69,7 +74,8 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
     defaultValues: {
       brideName: '',
       groomName: '',
-      weddingDate: '',
+      weddingStartDate: '',
+      weddingEndDate: '',
       venue: '',
       city: '',
       state: '',
@@ -219,19 +225,35 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
                     />
                   </div>
                   
-                  <FormField
-                    control={form.control}
-                    name="weddingDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Wedding Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="weddingStartDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Wedding Start Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="weddingEndDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Wedding End Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -279,7 +301,7 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {indianStates.map((state) => (
+                              {usStates.map((state) => (
                                 <SelectItem key={state} value={state}>
                                   {state}
                                 </SelectItem>

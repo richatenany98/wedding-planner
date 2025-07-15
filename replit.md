@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack Indian Wedding Planning application built with React, TypeScript, Express, and Drizzle ORM. The application provides a comprehensive platform for managing all aspects of Indian weddings including events, guest lists, task management, and more. It features a modern UI with shadcn/ui components and supports multiple user roles (bride, groom, planner, parents, family).
+This is a full-stack American Wedding Planning application built with React, TypeScript, Express, and Drizzle ORM. The application provides a comprehensive platform for managing all aspects of American weddings including events, guest lists, task management, budget tracking, and vendor management. It features a modern UI with shadcn/ui components and supports multiple user roles (bride, groom, planner, parents, family).
 
 ## User Preferences
 
@@ -28,12 +28,14 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Connect-pg-simple for PostgreSQL session storage
 
 ### Database Schema
-The application uses five main entities:
+The application uses six main entities:
 - **Users**: Authentication and role management
-- **Events**: Wedding events (Haldi, Mehndi, Sangeet, Wedding, Reception)
+- **Wedding Profiles**: Wedding details with date ranges for multi-day celebrations
+- **Events**: Wedding events (Rehearsal Dinner, Wedding Ceremony, Cocktail Hour, Reception, etc.)
 - **Guests**: Guest information with RSVP tracking
 - **Tasks**: Kanban-style task management with categories
 - **Budget Items**: Vendor expense tracking with payment status
+- **Vendors**: Vendor management with contract tracking
 
 ## Key Components
 
@@ -95,14 +97,35 @@ The application uses five main entities:
 - **Environment**: NODE_ENV-based configuration
 
 ### Key Features
-- **Multi-Event Support**: Manage multiple wedding events (Haldi, Mehndi, Sangeet, Wedding, Reception)
+- **Multi-Day Wedding Support**: Support for wedding date ranges spanning multiple days (3+ days)
+- **American Wedding Events**: Manage typical American wedding events (Engagement Party, Bridal Shower, Bachelor/Bachelorette Parties, Rehearsal Dinner, Wedding Ceremony, Cocktail Hour, Reception, After Party)
+- **US Geographic Support**: Complete US states list for wedding location planning
 - **Role-Based Views**: Different perspectives for bride, groom, planner, parents, family
 - **Guest Management**: Comprehensive guest tracking with RSVP status and bulk import
 - **Task Management**: Kanban-style boards with categorized tasks and predefined templates
-- **Budget Management**: Vendor expense tracking with payment status monitoring
+- **Budget Management**: Vendor expense tracking with payment status monitoring in USD
+- **Vendor Management**: Contract tracking and vendor relationship management
 - **Database Integration**: PostgreSQL with Drizzle ORM for persistent data storage
 - **Export Functionality**: CSV export for guests and tasks
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Indian Wedding Focus**: Culturally appropriate colors, events, and terminology
+- **American Wedding Focus**: Culturally appropriate themes, events, and terminology for US weddings
 
-The application is designed to be scalable, with clear separation of concerns and a flexible architecture that can accommodate future features like vendor management, budget tracking, and more advanced wedding planning capabilities.
+## Recent Changes (December 2024)
+
+### American Wedding Migration
+- **Date Range Support**: Updated wedding profiles to support multi-day celebrations with start and end dates
+- **US Geographic Data**: Replaced Indian states with complete US states list for location planning
+- **American Wedding Events**: Updated event types to reflect American wedding traditions:
+  - Engagement Party, Bridal Shower, Bachelor/Bachelorette Parties
+  - Rehearsal Dinner, Wedding Ceremony, Cocktail Hour
+  - Reception, After Party
+- **Currency Updates**: All budget tracking now uses USD
+- **Sample Data**: Updated seed data with American wedding example (Sarah & Michael in Napa Valley, CA)
+- **Database Schema**: Modified wedding_profiles table to use wedding_start_date and wedding_end_date
+
+### UI/UX Improvements
+- **Form Simplification**: Simplified registration and onboarding forms using plain HTML inputs for better reliability
+- **Date Range Display**: Updated dashboard and sidebar to show wedding date ranges
+- **American Themes**: Updated wedding themes to reflect American wedding styles
+
+The application is designed to be scalable, with clear separation of concerns and a flexible architecture that can accommodate future features and advanced American wedding planning capabilities.

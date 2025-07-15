@@ -135,7 +135,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-neutral-800">Wedding Dashboard</h2>
-            <p className="text-neutral-600">{weddingProfile.brideName} & {weddingProfile.groomName} • {weddingProfile.weddingDate}</p>
+            <p className="text-neutral-600">{weddingProfile.brideName} & {weddingProfile.groomName} • {weddingProfile.weddingStartDate} - {weddingProfile.weddingEndDate}</p>
           </div>
           <div className="flex items-center space-x-4">
             <Dialog open={isAddDialogOpen || !!editingEvent} onOpenChange={(open) => {

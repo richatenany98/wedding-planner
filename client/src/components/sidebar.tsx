@@ -33,6 +33,7 @@ export function Sidebar({ weddingProfile, onLogout }: SidebarProps) {
           <div>
             <h1 className="text-xl font-bold text-neutral-800">{weddingProfile.brideName} & {weddingProfile.groomName}</h1>
             <p className="text-sm text-neutral-500">{weddingProfile.city}, {weddingProfile.state}</p>
+            <p className="text-xs text-neutral-400">{weddingProfile.weddingStartDate} - {weddingProfile.weddingEndDate}</p>
           </div>
         </div>
 
