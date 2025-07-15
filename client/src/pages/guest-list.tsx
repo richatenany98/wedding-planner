@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Download, Upload } from 'lucide-react';
 import { GuestTable } from '@/components/guest-table';
-import { exportGuests } from '@/lib/export';
+import { GuestImport } from '@/components/guest-import';
+
 
 export default function GuestList() {
   return (
@@ -15,14 +14,7 @@ export default function GuestList() {
             <p className="text-neutral-600">Manage guests across all events</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Import
-            </Button>
-            <Button variant="outline" onClick={exportGuests}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
+            <GuestImport />
           </div>
         </div>
       </header>

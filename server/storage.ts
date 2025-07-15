@@ -1,4 +1,4 @@
-import { users, events, guests, tasks, type User, type InsertUser, type Event, type InsertEvent, type Guest, type InsertGuest, type Task, type InsertTask } from "@shared/schema";
+import { users, events, guests, tasks, budgetItems, type User, type InsertUser, type Event, type InsertEvent, type Guest, type InsertGuest, type Task, type InsertTask, type BudgetItem, type InsertBudgetItem } from "@shared/schema";
 
 export interface IStorage {
   // User methods
@@ -26,6 +26,13 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
+  
+  // Budget methods
+  getBudgetItems(): Promise<BudgetItem[]>;
+  getBudgetItem(id: number): Promise<BudgetItem | undefined>;
+  createBudgetItem(budgetItem: InsertBudgetItem): Promise<BudgetItem>;
+  updateBudgetItem(id: number, budgetItem: Partial<BudgetItem>): Promise<BudgetItem | undefined>;
+  deleteBudgetItem(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -33,20 +40,24 @@ export class MemStorage implements IStorage {
   private events: Map<number, Event>;
   private guests: Map<number, Guest>;
   private tasks: Map<number, Task>;
+  private budgetItems: Map<number, BudgetItem>;
   private currentUserId: number;
   private currentEventId: number;
   private currentGuestId: number;
   private currentTaskId: number;
+  private currentBudgetItemId: number;
 
   constructor() {
     this.users = new Map();
     this.events = new Map();
     this.guests = new Map();
     this.tasks = new Map();
+    this.budgetItems = new Map();
     this.currentUserId = 1;
     this.currentEventId = 1;
     this.currentGuestId = 1;
     this.currentTaskId = 1;
+    this.currentBudgetItemId = 1;
     
     this.seedData();
   }
@@ -115,6 +126,65 @@ export class MemStorage implements IStorage {
       const id = this.currentEventId++;
       this.events.set(id, { ...event, id });
     });
+
+    // Seed budget items
+    const budgetItems = [
+      {
+        category: 'venue',
+        vendor: 'Royal Banquet Hall',
+        description: 'Wedding venue booking',
+        estimatedAmount: 150000,
+        actualAmount: 145000,
+        paidAmount: 50000,
+        status: 'partial',
+        eventId: null,
+      },
+      {
+        category: 'photography',
+        vendor: 'Moments Studio',
+        description: 'Wedding photography and videography',
+        estimatedAmount: 75000,
+        actualAmount: 80000,
+        paidAmount: 80000,
+        status: 'paid',
+        eventId: null,
+      },
+      {
+        category: 'catering',
+        vendor: 'Delicious Catering',
+        description: 'Food and beverages for all events',
+        estimatedAmount: 200000,
+        actualAmount: null,
+        paidAmount: null,
+        status: 'pending',
+        eventId: null,
+      },
+      {
+        category: 'attire',
+        vendor: 'Elegant Fashions',
+        description: 'Bridal lehenga and accessories',
+        estimatedAmount: 100000,
+        actualAmount: 95000,
+        paidAmount: 95000,
+        status: 'paid',
+        eventId: null,
+      },
+      {
+        category: 'flowers',
+        vendor: 'Blooms & Blossoms',
+        description: 'Floral decorations and garlands',
+        estimatedAmount: 50000,
+        actualAmount: null,
+        paidAmount: null,
+        status: 'pending',
+        eventId: null,
+      },
+    ];
+
+    budgetItems.forEach(budgetItem => {
+      const id = this.currentBudgetItemId++;
+      this.budgetItems.set(id, { ...budgetItem, id });
+    });
   }
 
   // User methods
@@ -144,7 +214,13 @@ export class MemStorage implements IStorage {
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const id = this.currentEventId++;
-    const event: Event = { ...insertEvent, id, progress: 0, guestCount: 0 };
+    const event: Event = { 
+      ...insertEvent, 
+      id, 
+      progress: 0, 
+      guestCount: 0,
+      description: insertEvent.description || null
+    };
     this.events.set(id, event);
     return event;
   }
@@ -173,7 +249,14 @@ export class MemStorage implements IStorage {
 
   async createGuest(insertGuest: InsertGuest): Promise<Guest> {
     const id = this.currentGuestId++;
-    const guest: Guest = { ...insertGuest, id };
+    const guest: Guest = { 
+      ...insertGuest, 
+      id,
+      email: insertGuest.email || null,
+      phone: insertGuest.phone || null,
+      eventIds: insertGuest.eventIds || null,
+      rsvpStatus: insertGuest.rsvpStatus || null
+    };
     this.guests.set(id, guest);
     return guest;
   }
@@ -202,7 +285,13 @@ export class MemStorage implements IStorage {
 
   async createTask(insertTask: InsertTask): Promise<Task> {
     const id = this.currentTaskId++;
-    const task: Task = { ...insertTask, id };
+    const task: Task = { 
+      ...insertTask, 
+      id,
+      description: insertTask.description || null,
+      dueDate: insertTask.dueDate || null,
+      eventId: insertTask.eventId || null
+    };
     this.tasks.set(id, task);
     return task;
   }
@@ -218,6 +307,42 @@ export class MemStorage implements IStorage {
 
   async deleteTask(id: number): Promise<boolean> {
     return this.tasks.delete(id);
+  }
+
+  // Budget methods
+  async getBudgetItems(): Promise<BudgetItem[]> {
+    return Array.from(this.budgetItems.values());
+  }
+
+  async getBudgetItem(id: number): Promise<BudgetItem | undefined> {
+    return this.budgetItems.get(id);
+  }
+
+  async createBudgetItem(insertBudgetItem: InsertBudgetItem): Promise<BudgetItem> {
+    const id = this.currentBudgetItemId++;
+    const budgetItem: BudgetItem = {
+      ...insertBudgetItem,
+      id,
+      description: insertBudgetItem.description || null,
+      actualAmount: insertBudgetItem.actualAmount || null,
+      paidAmount: insertBudgetItem.paidAmount || null,
+      eventId: insertBudgetItem.eventId || null
+    };
+    this.budgetItems.set(id, budgetItem);
+    return budgetItem;
+  }
+
+  async updateBudgetItem(id: number, budgetItemUpdate: Partial<BudgetItem>): Promise<BudgetItem | undefined> {
+    const budgetItem = this.budgetItems.get(id);
+    if (!budgetItem) return undefined;
+    
+    const updatedBudgetItem = { ...budgetItem, ...budgetItemUpdate };
+    this.budgetItems.set(id, updatedBudgetItem);
+    return updatedBudgetItem;
+  }
+
+  async deleteBudgetItem(id: number): Promise<boolean> {
+    return this.budgetItems.delete(id);
   }
 }
 

@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/sidebar";
 import Dashboard from "@/pages/dashboard";
 import GuestList from "@/pages/guest-list";
 import TaskBoard from "@/pages/task-board";
+import Budget from "@/pages/budget";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/guests" component={GuestList} />
       <Route path="/tasks" component={TaskBoard} />
+      <Route path="/budget" component={Budget} />
       <Route component={NotFound} />
     </Switch>
   );

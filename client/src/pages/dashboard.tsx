@@ -9,11 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Download } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { Event, insertEventSchema } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
-import { exportGuests } from '@/lib/export';
+
 import { z } from 'zod';
 
 const eventFormSchema = insertEventSchema.extend({
@@ -134,10 +134,6 @@ export default function Dashboard() {
             <p className="text-neutral-600">Manage your Indian wedding celebrations</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={exportGuests}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
             <Dialog open={isAddDialogOpen || !!editingEvent} onOpenChange={(open) => {
               if (!open) {
                 setIsAddDialogOpen(false);
@@ -307,7 +303,10 @@ export default function Dashboard() {
           ))}
           
           {/* Add Event Card */}
-          <Card className="border-2 border-dashed border-neutral-300 hover:border-primary transition-colors cursor-pointer">
+          <Card 
+            className="border-2 border-dashed border-neutral-300 hover:border-primary transition-colors cursor-pointer"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
             <CardContent className="p-6">
               <div className="flex flex-col items-center justify-center h-full text-center min-h-[200px]">
                 <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mb-4">

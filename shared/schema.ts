@@ -44,6 +44,18 @@ export const tasks = pgTable("tasks", {
   eventId: integer("event_id"),
 });
 
+export const budgetItems = pgTable("budget_items", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(),
+  vendor: text("vendor").notNull(),
+  description: text("description"),
+  estimatedAmount: integer("estimated_amount").notNull(),
+  actualAmount: integer("actual_amount").default(0),
+  paidAmount: integer("paid_amount").default(0),
+  status: text("status").notNull().default("pending"),
+  eventId: integer("event_id"),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -80,6 +92,17 @@ export const insertTaskSchema = createInsertSchema(tasks).pick({
   eventId: true,
 });
 
+export const insertBudgetItemSchema = createInsertSchema(budgetItems).pick({
+  category: true,
+  vendor: true,
+  description: true,
+  estimatedAmount: true,
+  actualAmount: true,
+  paidAmount: true,
+  status: true,
+  eventId: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Event = typeof events.$inferSelect;
@@ -88,3 +111,5 @@ export type Guest = typeof guests.$inferSelect;
 export type InsertGuest = z.infer<typeof insertGuestSchema>;
 export type Task = typeof tasks.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type BudgetItem = typeof budgetItems.$inferSelect;
+export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;

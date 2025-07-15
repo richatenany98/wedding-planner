@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertEventSchema, insertGuestSchema, insertTaskSchema } from "@shared/schema";
+import { insertEventSchema, insertGuestSchema, insertTaskSchema, insertBudgetItemSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -199,6 +199,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(csv);
     } catch (error) {
       res.status(500).json({ error: "Failed to export tasks" });
+    }
+  });
+
+  // Budget routes
+  app.get("/api/budget", async (req, res) => {
+    try {
+      const budgetItems = await storage.getBudgetItems();
+      res.json(budgetItems);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch budget items" });
+    }
+  });
+
+  app.post("/api/budget", async (req, res) => {
+    try {
+      const budgetData = insertBudgetItemSchema.parse(req.body);
+      const budgetItem = await storage.createBudgetItem(budgetData);
+      res.status(201).json(budgetItem);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid budget data" });
+    }
+  });
+
+  app.put("/api/budget/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const budgetData = req.body;
+      const budgetItem = await storage.updateBudgetItem(id, budgetData);
+      if (!budgetItem) {
+        return res.status(404).json({ error: "Budget item not found" });
+      }
+      res.json(budgetItem);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid budget data" });
+    }
+  });
+
+  app.delete("/api/budget/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteBudgetItem(id);
+      if (!success) {
+        return res.status(404).json({ error: "Budget item not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete budget item" });
     }
   });
 

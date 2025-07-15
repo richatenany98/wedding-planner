@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+
 import { KanbanBoard } from '@/components/kanban-board';
-import { exportTasks } from '@/lib/export';
+
 
 export default function TaskBoard() {
   return (
@@ -15,10 +15,6 @@ export default function TaskBoard() {
             <p className="text-neutral-600">Track wedding planning progress</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={exportTasks}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
           </div>
         </div>
       </header>

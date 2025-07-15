@@ -36,6 +36,42 @@ const categories = [
   { value: 'photography', label: 'Photography', color: 'bg-yellow-100 text-yellow-800' },
 ];
 
+const predefinedTasks = [
+  // Venue tasks
+  { title: 'Book wedding venue', category: 'venue', description: 'Reserve main ceremony venue' },
+  { title: 'Book reception venue', category: 'venue', description: 'Reserve reception hall' },
+  { title: 'Visit venue for final checks', category: 'venue', description: 'Final venue inspection' },
+  
+  // Decor tasks
+  { title: 'Choose mandap design', category: 'decor', description: 'Select mandap decoration style' },
+  { title: 'Book decorator', category: 'decor', description: 'Hire decoration service' },
+  { title: 'Choose flowers for ceremonies', category: 'decor', description: 'Select flower arrangements' },
+  { title: 'Plan entrance decoration', category: 'decor', description: 'Design entrance decor' },
+  
+  // Food tasks
+  { title: 'Book catering service', category: 'food', description: 'Hire catering company' },
+  { title: 'Finalize menu', category: 'food', description: 'Confirm all meal options' },
+  { title: 'Arrange for special dietary needs', category: 'food', description: 'Accommodate dietary restrictions' },
+  { title: 'Book sweet vendor', category: 'food', description: 'Arrange traditional sweets' },
+  
+  // Attire tasks
+  { title: 'Shop for bridal lehenga', category: 'attire', description: 'Purchase bridal outfit' },
+  { title: 'Shop for groom\'s sherwani', category: 'attire', description: 'Purchase groom\'s outfit' },
+  { title: 'Buy jewelry for bride', category: 'attire', description: 'Purchase wedding jewelry' },
+  { title: 'Final fittings', category: 'attire', description: 'Complete outfit fittings' },
+  
+  // Invitations tasks
+  { title: 'Design wedding invitations', category: 'invitations', description: 'Create invitation design' },
+  { title: 'Print invitations', category: 'invitations', description: 'Print physical invitations' },
+  { title: 'Send invitations', category: 'invitations', description: 'Distribute invitations to guests' },
+  
+  // Photography tasks
+  { title: 'Book wedding photographer', category: 'photography', description: 'Hire photographer service' },
+  { title: 'Book videographer', category: 'photography', description: 'Hire videography service' },
+  { title: 'Plan pre-wedding shoot', category: 'photography', description: 'Schedule engagement photos' },
+  { title: 'Finalize shot list', category: 'photography', description: 'Create photography checklist' },
+];
+
 const roles = [
   { value: 'bride', label: 'Bride' },
   { value: 'groom', label: 'Groom' },
@@ -47,6 +83,7 @@ const roles = [
 export function KanbanBoard() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showPredefinedTasks, setShowPredefinedTasks] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery<Task[]>({
@@ -127,6 +164,18 @@ export function KanbanBoard() {
     updateTaskMutation.mutate({ id: taskId, data: { status: newStatus } });
   };
 
+  const handleAddPredefinedTask = (predefinedTask: typeof predefinedTasks[0]) => {
+    const taskData = {
+      title: predefinedTask.title,
+      description: predefinedTask.description,
+      category: predefinedTask.category,
+      status: 'todo',
+      assignedTo: 'bride',
+      dueDate: '',
+    };
+    createTaskMutation.mutate(taskData);
+  };
+
   const getCategoryColor = (category: string) => {
     const cat = categories.find(c => c.value === category);
     return cat?.color || 'bg-gray-100 text-gray-800';
@@ -162,19 +211,24 @@ export function KanbanBoard() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Task Management</h3>
-        <Dialog open={isAddDialogOpen || !!editingTask} onOpenChange={(open) => {
-          if (!open) {
-            setIsAddDialogOpen(false);
-            setEditingTask(null);
-            form.reset();
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Task
-            </Button>
-          </DialogTrigger>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => setShowPredefinedTasks(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add from Templates
+          </Button>
+          <Dialog open={isAddDialogOpen || !!editingTask} onOpenChange={(open) => {
+            if (!open) {
+              setIsAddDialogOpen(false);
+              setEditingTask(null);
+              form.reset();
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Task
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
@@ -284,6 +338,45 @@ export function KanbanBoard() {
             </Form>
           </DialogContent>
         </Dialog>
+        
+        {/* Predefined Tasks Dialog */}
+        <Dialog open={showPredefinedTasks} onOpenChange={setShowPredefinedTasks}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Tasks from Templates</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {categories.map((category) => {
+                const categoryTasks = predefinedTasks.filter(task => task.category === category.value);
+                return (
+                  <div key={category.value} className="space-y-2">
+                    <h4 className="font-medium text-lg text-neutral-800">{category.label}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {categoryTasks.map((task, index) => (
+                        <div key={index} className="p-3 border rounded-lg bg-neutral-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-sm text-neutral-800">{task.title}</h5>
+                              <p className="text-xs text-neutral-600 mt-1">{task.description}</p>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAddPredefinedTask(task)}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
