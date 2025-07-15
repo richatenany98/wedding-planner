@@ -92,7 +92,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   role: true,
   name: true,
-  weddingProfileId: true,
+}).extend({
+  weddingProfileId: z.number().optional(),
 });
 
 export const insertWeddingProfileSchema = createInsertSchema(weddingProfiles).pick({
