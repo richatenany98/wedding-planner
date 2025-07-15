@@ -35,15 +35,14 @@ interface OnboardingProps {
 }
 
 const weddingFunctions = [
-  { id: 'engagement', label: 'Engagement Party', description: 'Celebrating the engagement' },
-  { id: 'bridal-shower', label: 'Bridal Shower', description: 'Pre-wedding celebration for the bride' },
-  { id: 'bachelor-party', label: 'Bachelor Party', description: 'Groom\'s pre-wedding celebration' },
-  { id: 'bachelorette-party', label: 'Bachelorette Party', description: 'Bride\'s pre-wedding celebration' },
-  { id: 'rehearsal-dinner', label: 'Rehearsal Dinner', description: 'Pre-wedding dinner with close family' },
-  { id: 'ceremony', label: 'Wedding Ceremony', description: 'Main wedding ceremony' },
-  { id: 'cocktail-hour', label: 'Cocktail Hour', description: 'Pre-reception drinks and appetizers' },
-  { id: 'reception', label: 'Reception', description: 'Wedding reception and dinner' },
-  { id: 'after-party', label: 'After Party', description: 'Late-night celebration after reception' },
+  { id: 'ganesh-puja', label: 'Ganesh Puja', description: 'Prayer ceremony to Lord Ganesha for auspicious beginnings' },
+  { id: 'welcome-party', label: 'Welcome Party', description: 'Welcome celebration for out-of-town guests' },
+  { id: 'grah-shanti', label: 'Grah Shanti', description: 'Ceremony to remove obstacles and bring peace' },
+  { id: 'haldi', label: 'Haldi', description: 'Turmeric ceremony for purification and blessings' },
+  { id: 'mayra', label: 'Mayra', description: 'Maternal uncle\'s blessing ceremony' },
+  { id: 'sangeet', label: 'Sangeet', description: 'Musical celebration with dance and performances' },
+  { id: 'wedding', label: 'Wedding', description: 'Main wedding ceremony with sacred rituals' },
+  { id: 'reception', label: 'Reception', description: 'Grand celebration and dinner for all guests' },
 ];
 
 const themes = [

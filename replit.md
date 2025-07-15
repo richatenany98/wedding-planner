@@ -98,7 +98,7 @@ The application uses six main entities:
 
 ### Key Features
 - **Multi-Day Wedding Support**: Support for wedding date ranges spanning multiple days (3+ days)
-- **American Wedding Events**: Manage typical American wedding events (Engagement Party, Bridal Shower, Bachelor/Bachelorette Parties, Rehearsal Dinner, Wedding Ceremony, Cocktail Hour, Reception, After Party)
+- **Indian Wedding Events in America**: Manage traditional Indian wedding events taking place in American locations (Ganesh Puja, Welcome Party, Grah Shanti, Haldi, Mayra, Sangeet, Wedding, Reception)
 - **US Geographic Support**: Complete US states list for wedding location planning
 - **Role-Based Views**: Different perspectives for bride, groom, planner, parents, family
 - **Guest Management**: Comprehensive guest tracking with RSVP status and bulk import
@@ -108,17 +108,23 @@ The application uses six main entities:
 - **Database Integration**: PostgreSQL with Drizzle ORM for persistent data storage
 - **Export Functionality**: CSV export for guests and tasks
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **American Wedding Focus**: Culturally appropriate themes, events, and terminology for US weddings
+- **Indian-American Wedding Focus**: Traditional Indian wedding ceremonies adapted for American locations with US states and venues
+- **Custom Event Creation**: Users can add their own custom events beyond the traditional Indian ceremony options
 
 ## Recent Changes (December 2024)
 
 ### American Wedding Migration
 - **Date Range Support**: Updated wedding profiles to support multi-day celebrations with start and end dates
 - **US Geographic Data**: Replaced Indian states with complete US states list for location planning
-- **American Wedding Events**: Updated event types to reflect American wedding traditions:
-  - Engagement Party, Bridal Shower, Bachelor/Bachelorette Parties
-  - Rehearsal Dinner, Wedding Ceremony, Cocktail Hour
-  - Reception, After Party
+- **Indian Wedding Events in America**: Updated event types to reflect traditional Indian wedding ceremonies in American locations:
+  - Ganesh Puja: Prayer ceremony to Lord Ganesha for auspicious beginnings
+  - Welcome Party: Welcome celebration for out-of-town guests
+  - Grah Shanti: Ceremony to remove obstacles and bring peace
+  - Haldi: Turmeric ceremony for purification and blessings
+  - Mayra: Maternal uncle's blessing ceremony
+  - Sangeet: Musical celebration with dance and performances
+  - Wedding: Main wedding ceremony with sacred rituals
+  - Reception: Grand celebration and dinner for all guests
 - **Currency Updates**: All budget tracking now uses USD
 - **Sample Data**: Updated seed data with American wedding example (Sarah & Michael in Napa Valley, CA)
 - **Database Schema**: Modified wedding_profiles table to use wedding_start_date and wedding_end_date
@@ -126,6 +132,8 @@ The application uses six main entities:
 ### UI/UX Improvements
 - **Form Simplification**: Simplified registration and onboarding forms using plain HTML inputs for better reliability
 - **Date Range Display**: Updated dashboard and sidebar to show wedding date ranges
-- **American Themes**: Updated wedding themes to reflect American wedding styles
+- **Indian Wedding Themes**: Updated wedding themes to reflect traditional Indian wedding styles
+- **Enhanced Event Management**: Added comprehensive icon and color options for Indian wedding events
+- **Custom Event Support**: Users can create custom events with personalized icons and colors
 
-The application is designed to be scalable, with clear separation of concerns and a flexible architecture that can accommodate future features and advanced American wedding planning capabilities.
+The application is designed to be scalable, with clear separation of concerns and a flexible architecture that can accommodate future features and advanced Indian-American wedding planning capabilities.

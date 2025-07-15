@@ -24,19 +24,28 @@ const eventFormSchema = insertEventSchema.extend({
 type EventFormData = z.infer<typeof eventFormSchema>;
 
 const eventIcons = [
+  { value: 'flower', label: 'Flower (Ganesh Puja)', emoji: '🌸' },
   { value: 'sun', label: 'Sun (Haldi)', emoji: '☀️' },
   { value: 'hand-paper', label: 'Hand (Mehndi)', emoji: '✋' },
   { value: 'music', label: 'Music (Sangeet)', emoji: '🎵' },
   { value: 'ring', label: 'Ring (Wedding)', emoji: '💍' },
   { value: 'champagne-glasses', label: 'Champagne (Reception)', emoji: '🥂' },
+  { value: 'home', label: 'Home (Welcome Party)', emoji: '🏠' },
+  { value: 'sparkles', label: 'Sparkles (Mayra)', emoji: '✨' },
+  { value: 'star', label: 'Star (Grah Shanti)', emoji: '⭐' },
+  { value: 'heart', label: 'Heart (Custom)', emoji: '💕' },
+  { value: 'calendar', label: 'Calendar (Event)', emoji: '📅' },
 ];
 
 const eventColors = [
   { value: 'yellow', label: 'Yellow/Gold' },
+  { value: 'orange', label: 'Orange' },
   { value: 'green', label: 'Green' },
   { value: 'purple', label: 'Purple' },
   { value: 'red', label: 'Red' },
   { value: 'indigo', label: 'Indigo' },
+  { value: 'pink', label: 'Pink' },
+  { value: 'blue', label: 'Blue' },
 ];
 
 interface DashboardProps {
@@ -92,8 +101,8 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       date: '',
       time: '',
       location: '',
-      icon: 'sun',
-      color: 'yellow',
+      icon: 'flower',
+      color: 'orange',
     },
   });
 
