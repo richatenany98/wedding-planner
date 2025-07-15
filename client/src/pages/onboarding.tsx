@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Heart, MapPin, Users, DollarSign, Calendar, Plus, Trash2 } from 'lucide-react';
+import { Heart, MapPin, Users, DollarSign, Calendar } from 'lucide-react';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -24,15 +24,6 @@ const onboardingSchema = z.object({
   guestCount: z.number().min(1, 'Guest count must be at least 1'),
   budget: z.number().min(1, 'Budget must be at least $1'),
   functions: z.array(z.string()).min(1, 'Select at least one function'),
-  events: z.array(z.object({
-    name: z.string().min(1, 'Event name is required'),
-    description: z.string().optional(),
-    date: z.string().min(1, 'Date is required'),
-    time: z.string().min(1, 'Time is required'),
-    location: z.string().min(1, 'Location is required'),
-    icon: z.string().default('calendar'),
-    color: z.string().default('blue'),
-  })).default([]),
 });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
@@ -82,7 +73,6 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
       guestCount: 0,
       budget: 0,
       functions: [],
-      events: [],
     },
   });
 
@@ -110,12 +100,6 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
       description: 'Which ceremonies will you have?',
       icon: Calendar,
       fields: ['functions']
-    },
-    {
-      title: 'Add Events',
-      description: 'Create your wedding events',
-      icon: Plus,
-      fields: ['events']
     }
   ];
 
@@ -404,121 +388,7 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
                 </div>
               )}
 
-              {currentStep === 4 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Add Wedding Events</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const currentEvents = form.getValues('events');
-                        form.setValue('events', [...currentEvents, {
-                          name: '',
-                          description: '',
-                          date: '',
-                          time: '',
-                          location: '',
-                          icon: 'calendar',
-                          color: 'blue'
-                        }]);
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Event
-                    </Button>
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="events"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="space-y-4">
-                          {field.value.map((event, index) => (
-                            <div key={index} className="border rounded-lg p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-medium">Event {index + 1}</h4>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    const newEvents = field.value.filter((_, i) => i !== index);
-                                    field.onChange(newEvents);
-                                  }}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3">
-                                <Input
-                                  placeholder="Event name"
-                                  value={event.name}
-                                  onChange={(e) => {
-                                    const newEvents = [...field.value];
-                                    newEvents[index].name = e.target.value;
-                                    field.onChange(newEvents);
-                                  }}
-                                />
-                                <Input
-                                  placeholder="Location"
-                                  value={event.location}
-                                  onChange={(e) => {
-                                    const newEvents = [...field.value];
-                                    newEvents[index].location = e.target.value;
-                                    field.onChange(newEvents);
-                                  }}
-                                />
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3">
-                                <Input
-                                  type="date"
-                                  value={event.date}
-                                  onChange={(e) => {
-                                    const newEvents = [...field.value];
-                                    newEvents[index].date = e.target.value;
-                                    field.onChange(newEvents);
-                                  }}
-                                />
-                                <Input
-                                  placeholder="Time (e.g., 10:00 AM)"
-                                  value={event.time}
-                                  onChange={(e) => {
-                                    const newEvents = [...field.value];
-                                    newEvents[index].time = e.target.value;
-                                    field.onChange(newEvents);
-                                  }}
-                                />
-                              </div>
-                              
-                              <Textarea
-                                placeholder="Event description (optional)"
-                                value={event.description || ''}
-                                onChange={(e) => {
-                                  const newEvents = [...field.value];
-                                  newEvents[index].description = e.target.value;
-                                  field.onChange(newEvents);
-                                }}
-                              />
-                            </div>
-                          ))}
-                          
-                          {field.value.length === 0 && (
-                            <div className="text-center py-8 text-neutral-500">
-                              No events added yet. Click "Add Event" to create your first event.
-                            </div>
-                          )}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+
 
               <div className="flex justify-between pt-6">
                 <Button
