@@ -23,7 +23,6 @@ export const weddingProfiles = pgTable("wedding_profiles", {
   guestCount: integer("guest_count").notNull(),
   budget: integer("budget").notNull(),
   functions: text("functions").array().notNull(),
-  theme: text("theme").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   isComplete: boolean("is_complete").default(false),
 });
@@ -108,7 +107,6 @@ export const insertWeddingProfileSchema = createInsertSchema(weddingProfiles).pi
   guestCount: true,
   budget: true,
   functions: true,
-  theme: true,
   isComplete: true,
 });
 

@@ -26,7 +26,6 @@ async function seed() {
       guestCount: 200,
       budget: 75000,
       functions: ['ganesh-puja', 'haldi', 'sangeet', 'wedding', 'reception'],
-      theme: 'elegant',
       isComplete: true,
     }).returning();
 
