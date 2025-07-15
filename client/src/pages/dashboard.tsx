@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
-import { Event, insertEventSchema } from '@shared/schema';
+import { Event, insertEventSchema, WeddingProfile } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
 import { z } from 'zod';
@@ -39,7 +39,11 @@ const eventColors = [
   { value: 'indigo', label: 'Indigo' },
 ];
 
-export default function Dashboard() {
+interface DashboardProps {
+  weddingProfile: WeddingProfile;
+}
+
+export default function Dashboard({ weddingProfile }: DashboardProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const queryClient = useQueryClient();
@@ -130,8 +134,8 @@ export default function Dashboard() {
       <header className="bg-white shadow-sm border-b border-neutral-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-neutral-800">Wedding Events</h2>
-            <p className="text-neutral-600">Manage your Indian wedding celebrations</p>
+            <h2 className="text-2xl font-bold text-neutral-800">Wedding Dashboard</h2>
+            <p className="text-neutral-600">{weddingProfile.brideName} & {weddingProfile.groomName} • {weddingProfile.weddingDate}</p>
           </div>
           <div className="flex items-center space-x-4">
             <Dialog open={isAddDialogOpen || !!editingEvent} onOpenChange={(open) => {

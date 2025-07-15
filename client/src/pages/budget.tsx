@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Edit, Trash2, IndianRupee, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Edit, Trash2, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import { BudgetItem, insertBudgetItemSchema } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { z } from 'zod';
@@ -144,9 +144,9 @@ export default function Budget() {
   const remaining = totalActual - totalPaid;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(amount);
   };
@@ -348,7 +348,7 @@ export default function Budget() {
                   <p className="text-2xl font-bold text-neutral-800">{formatCurrency(totalEstimated)}</p>
                 </div>
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <IndianRupee className="text-blue-600" size={20} />
+                  <DollarSign className="text-blue-600" size={20} />
                 </div>
               </div>
             </CardContent>
@@ -374,7 +374,7 @@ export default function Budget() {
                   <p className="text-2xl font-bold text-green-600">{formatCurrency(totalPaid)}</p>
                 </div>
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <IndianRupee className="text-green-600" size={20} />
+                  <DollarSign className="text-green-600" size={20} />
                 </div>
               </div>
             </CardContent>

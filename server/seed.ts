@@ -1,16 +1,42 @@
 import { db } from './db';
-import { users, events, guests, tasks, budgetItems } from '@shared/schema';
+import { users, events, guests, tasks, budgetItems, vendors, weddingProfiles } from '@shared/schema';
 
 async function seed() {
   try {
     console.log('Seeding database...');
 
     // Clear existing data
+    await db.delete(vendors);
     await db.delete(budgetItems);
     await db.delete(tasks);
     await db.delete(guests);
     await db.delete(events);
     await db.delete(users);
+    await db.delete(weddingProfiles);
+
+    // Create sample wedding profile
+    const weddingProfile = await db.insert(weddingProfiles).values({
+      brideName: 'Priya Sharma',
+      groomName: 'Arjun Patel',
+      weddingDate: '2024-12-20',
+      venue: 'Grand Palace Hotel',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      guestCount: 300,
+      budget: 50000,
+      functions: ['mehendi', 'haldi', 'sangeet', 'ceremony', 'reception'],
+      theme: 'traditional',
+      isComplete: true,
+    }).returning();
+
+    // Create sample user
+    const user = await db.insert(users).values({
+      username: 'priya.sharma',
+      password: 'password123',
+      role: 'bride',
+      name: 'Priya Sharma',
+      weddingProfileId: weddingProfile[0].id,
+    }).returning();
 
     // Create sample events
     const sampleEvents = [

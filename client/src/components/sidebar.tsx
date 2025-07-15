@@ -1,9 +1,16 @@
 import { Link, useLocation } from 'wouter';
-import { Heart, Calendar, Users, CheckSquare, MapPin, DollarSign } from 'lucide-react';
+import { Heart, Calendar, Users, CheckSquare, MapPin, DollarSign, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useCurrentRole } from '@/hooks/use-current-role';
 import { RoleSelector } from './role-selector';
+import { WeddingProfile } from '@shared/schema';
 
-export function Sidebar() {
+interface SidebarProps {
+  weddingProfile: WeddingProfile;
+  onLogout: () => void;
+}
+
+export function Sidebar({ weddingProfile, onLogout }: SidebarProps) {
   const [location] = useLocation();
   const { currentUser } = useCurrentRole();
 
@@ -24,8 +31,8 @@ export function Sidebar() {
             <Heart className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-neutral-800">Wedding Planner</h1>
-            <p className="text-sm text-neutral-500">Indian Weddings</p>
+            <h1 className="text-xl font-bold text-neutral-800">{weddingProfile.brideName} & {weddingProfile.groomName}</h1>
+            <p className="text-sm text-neutral-500">{weddingProfile.city}, {weddingProfile.state}</p>
           </div>
         </div>
 
@@ -58,14 +65,19 @@ export function Sidebar() {
 
       {/* User Profile */}
       <div className="p-6 border-t border-neutral-200 bg-white">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 wedding-gradient-pink rounded-full flex items-center justify-center">
-            <span className="text-white font-semibold text-sm">{currentUser.initials}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 wedding-gradient-pink rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold text-sm">{currentUser.initials}</span>
+            </div>
+            <div>
+              <p className="font-medium text-neutral-800">{currentUser.name}</p>
+              <p className="text-sm text-neutral-500 capitalize">{currentUser.role}</p>
+            </div>
           </div>
-          <div>
-            <p className="font-medium text-neutral-800">{currentUser.name}</p>
-            <p className="text-sm text-neutral-500 capitalize">{currentUser.role}</p>
-          </div>
+          <Button variant="ghost" size="sm" onClick={onLogout}>
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </nav>

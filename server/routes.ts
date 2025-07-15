@@ -1,10 +1,63 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertEventSchema, insertGuestSchema, insertTaskSchema, insertBudgetItemSchema } from "@shared/schema";
+import { insertEventSchema, insertGuestSchema, insertTaskSchema, insertBudgetItemSchema, insertVendorSchema, insertUserSchema, insertWeddingProfileSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user || user.password !== password) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(userData);
+      
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      res.status(400).json({ error: "Registration failed" });
+    }
+  });
+
+  // Wedding profile routes
+  app.post("/api/wedding-profile", async (req, res) => {
+    try {
+      const profileData = insertWeddingProfileSchema.parse(req.body);
+      const weddingProfile = await storage.createWeddingProfile(profileData);
+      res.status(201).json(weddingProfile);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create wedding profile" });
+    }
+  });
+
+  app.get("/api/wedding-profile/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const profile = await storage.getWeddingProfile(id);
+      if (!profile) {
+        return res.status(404).json({ error: "Wedding profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch wedding profile" });
+    }
+  });
+
   // Events routes
   app.get("/api/events", async (req, res) => {
     try {
@@ -246,6 +299,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete budget item" });
+    }
+  });
+
+  // Vendor routes
+  app.get("/api/vendors", async (req, res) => {
+    try {
+      const vendors = await storage.getVendors();
+      res.json(vendors);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch vendors" });
+    }
+  });
+
+  app.post("/api/vendors", async (req, res) => {
+    try {
+      const vendorData = insertVendorSchema.parse(req.body);
+      const vendor = await storage.createVendor(vendorData);
+      res.status(201).json(vendor);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid vendor data" });
+    }
+  });
+
+  app.put("/api/vendors/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const vendorData = req.body;
+      const vendor = await storage.updateVendor(id, vendorData);
+      if (!vendor) {
+        return res.status(404).json({ error: "Vendor not found" });
+      }
+      res.json(vendor);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid vendor data" });
+    }
+  });
+
+  app.delete("/api/vendors/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteVendor(id);
+      if (!success) {
+        return res.status(404).json({ error: "Vendor not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete vendor" });
     }
   });
 

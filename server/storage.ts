@@ -1,4 +1,4 @@
-import { users, events, guests, tasks, budgetItems, type User, type InsertUser, type Event, type InsertEvent, type Guest, type InsertGuest, type Task, type InsertTask, type BudgetItem, type InsertBudgetItem } from "@shared/schema";
+import { users, events, guests, tasks, budgetItems, vendors, weddingProfiles, type User, type InsertUser, type WeddingProfile, type InsertWeddingProfile, type Event, type InsertEvent, type Guest, type InsertGuest, type Task, type InsertTask, type BudgetItem, type InsertBudgetItem, type Vendor, type InsertVendor } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -7,6 +7,11 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Wedding Profile methods
+  getWeddingProfile(id: number): Promise<WeddingProfile | undefined>;
+  createWeddingProfile(profile: InsertWeddingProfile): Promise<WeddingProfile>;
+  updateWeddingProfile(id: number, profile: Partial<WeddingProfile>): Promise<WeddingProfile | undefined>;
   
   // Event methods
   getEvents(): Promise<Event[]>;
@@ -35,6 +40,13 @@ export interface IStorage {
   createBudgetItem(budgetItem: InsertBudgetItem): Promise<BudgetItem>;
   updateBudgetItem(id: number, budgetItem: Partial<BudgetItem>): Promise<BudgetItem | undefined>;
   deleteBudgetItem(id: number): Promise<boolean>;
+  
+  // Vendor methods
+  getVendors(): Promise<Vendor[]>;
+  getVendor(id: number): Promise<Vendor | undefined>;
+  createVendor(vendor: InsertVendor): Promise<Vendor>;
+  updateVendor(id: number, vendor: Partial<Vendor>): Promise<Vendor | undefined>;
+  deleteVendor(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -490,6 +502,59 @@ export class DatabaseStorage implements IStorage {
   async deleteBudgetItem(id: number): Promise<boolean> {
     const result = await db.delete(budgetItems).where(eq(budgetItems.id, id));
     return result.rowCount > 0;
+  }
+
+  async getVendors(): Promise<Vendor[]> {
+    return await db.select().from(vendors);
+  }
+
+  async getVendor(id: number): Promise<Vendor | undefined> {
+    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));
+    return vendor || undefined;
+  }
+
+  async createVendor(insertVendor: InsertVendor): Promise<Vendor> {
+    const [vendor] = await db
+      .insert(vendors)
+      .values(insertVendor)
+      .returning();
+    return vendor;
+  }
+
+  async updateVendor(id: number, vendorUpdate: Partial<Vendor>): Promise<Vendor | undefined> {
+    const [vendor] = await db
+      .update(vendors)
+      .set(vendorUpdate)
+      .where(eq(vendors.id, id))
+      .returning();
+    return vendor || undefined;
+  }
+
+  async deleteVendor(id: number): Promise<boolean> {
+    const result = await db.delete(vendors).where(eq(vendors.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getWeddingProfile(id: number): Promise<WeddingProfile | undefined> {
+    const [profile] = await db.select().from(weddingProfiles).where(eq(weddingProfiles.id, id));
+    return profile || undefined;
+  }
+
+  async createWeddingProfile(insertProfile: InsertWeddingProfile): Promise<WeddingProfile> {
+    const [profile] = await db
+      .insert(weddingProfiles)
+      .values(insertProfile)
+      .returning();
+    return profile;
+  }
+
+  async updateWeddingProfile(id: number, profileUpdate: Partial<WeddingProfile>): Promise<WeddingProfile | undefined> {
+    const [profile] = await db
+      .update(weddingProfiles)
+      .set(profileUpdate)
+      .where(eq(weddingProfiles.id, id))
+      .returning();
+    return profile || undefined;
   }
 }
 

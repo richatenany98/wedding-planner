@@ -8,6 +8,23 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   role: text("role").notNull(),
   name: text("name").notNull(),
+  weddingProfileId: integer("wedding_profile_id"),
+});
+
+export const weddingProfiles = pgTable("wedding_profiles", {
+  id: serial("id").primaryKey(),
+  brideName: text("bride_name").notNull(),
+  groomName: text("groom_name").notNull(),
+  weddingDate: text("wedding_date").notNull(),
+  venue: text("venue").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  guestCount: integer("guest_count").notNull(),
+  budget: integer("budget").notNull(),
+  functions: text("functions").array().notNull(),
+  theme: text("theme").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  isComplete: boolean("is_complete").default(false),
 });
 
 export const events = pgTable("events", {
@@ -56,11 +73,40 @@ export const budgetItems = pgTable("budget_items", {
   eventId: integer("event_id"),
 });
 
+export const vendors = pgTable("vendors", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  contact: text("contact"),
+  email: text("email"),
+  phone: text("phone"),
+  address: text("address"),
+  website: text("website"),
+  contractUrl: text("contract_url"),
+  notes: text("notes"),
+  status: text("status").notNull().default("active"),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   role: true,
   name: true,
+  weddingProfileId: true,
+});
+
+export const insertWeddingProfileSchema = createInsertSchema(weddingProfiles).pick({
+  brideName: true,
+  groomName: true,
+  weddingDate: true,
+  venue: true,
+  city: true,
+  state: true,
+  guestCount: true,
+  budget: true,
+  functions: true,
+  theme: true,
+  isComplete: true,
 });
 
 export const insertEventSchema = createInsertSchema(events).pick({
@@ -103,8 +149,23 @@ export const insertBudgetItemSchema = createInsertSchema(budgetItems).pick({
   eventId: true,
 });
 
+export const insertVendorSchema = createInsertSchema(vendors).pick({
+  name: true,
+  category: true,
+  contact: true,
+  email: true,
+  phone: true,
+  address: true,
+  website: true,
+  contractUrl: true,
+  notes: true,
+  status: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type WeddingProfile = typeof weddingProfiles.$inferSelect;
+export type InsertWeddingProfile = z.infer<typeof insertWeddingProfileSchema>;
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Guest = typeof guests.$inferSelect;
@@ -113,3 +174,5 @@ export type Task = typeof tasks.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type BudgetItem = typeof budgetItems.$inferSelect;
 export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
+export type Vendor = typeof vendors.$inferSelect;
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
