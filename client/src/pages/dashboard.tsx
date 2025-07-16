@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,23 +24,41 @@ const eventFormSchema = insertEventSchema.extend({
 type EventFormData = z.infer<typeof eventFormSchema>;
 
 const eventIcons = [
-  { value: 'flower', label: 'Flower (Ganesh Puja)', emoji: '🌸' },
-  { value: 'sun', label: 'Sun (Haldi)', emoji: '☀️' },
-  { value: 'hand-paper', label: 'Hand (Mehndi)', emoji: '✋' },
-  { value: 'music', label: 'Music (Sangeet)', emoji: '🎵' },
-  { value: 'ring', label: 'Ring (Wedding)', emoji: '💍' },
-  { value: 'champagne-glasses', label: 'Champagne (Reception)', emoji: '🥂' },
-  { value: 'home', label: 'Home (Welcome Party)', emoji: '🏠' },
-  { value: 'sparkles', label: 'Sparkles (Mayra)', emoji: '✨' },
-  { value: 'star', label: 'Star (Grah Shanti)', emoji: '⭐' },
-  { value: 'heart', label: 'Heart (Custom)', emoji: '💕' },
-  { value: 'calendar', label: 'Calendar (Event)', emoji: '📅' },
+  { value: 'hand-paper', label: 'Bridal Mehndi', emoji: '💐' },
+  { value: 'flower', label: 'Ganesh Puja', emoji: '🙏' },
+  { value: 'home', label: 'Welcome Party', emoji: '🎉' },
+  { value: 'star', label: 'Grah Shanti', emoji: '🌿' },
+  { value: 'sun', label: 'Haldi', emoji: '🌼' },
+  { value: 'sparkles', label: 'Mayra', emoji: '🎁' },
+  { value: 'music', label: 'Sangeet', emoji: '💃' },
+  { value: 'horse', label: 'Baraat', emoji: '🐎' },
+  { value: 'ring', label: 'Wedding', emoji: '💍' },
+  { value: 'champagne-glasses', label: 'Reception', emoji: '✨' },
+  { value: 'heart', label: 'Custom Event', emoji: '💕' },
 ];
+
+const eventDescriptions = {
+  'hand-paper': "A chill, artsy pre-wedding hangout where the bride (and sometimes guests) get their hands and feet decorated with henna. It's usually relaxed, with music, snacks, and lots of photos.",
+  'flower': "A small but meaningful prayer ceremony to invite good vibes and remove any obstacles before all the big celebrations begin. It's usually done with close family.",
+  'home': "This is the \"hi, hello, let's kick things off\" event — casual or fancy depending on the family. Think mingling, drinks, and everyone getting to know each other before the main events.",
+  'star': "Another peaceful prayer ceremony, usually done at home, to bring harmony and positive energy. It's spiritual and grounding before all the wedding madness starts.",
+  'sun': "A super fun and messy (in a good way) ceremony where the bride and groom get covered in turmeric paste by family and friends. It's supposed to bring glow and good luck — expect laughter and yellow everywhere.",
+  'sparkles': "A family tradition, especially in North Indian weddings, where the bride/groom's maternal uncle (mama) brings gifts and blessings. Lots of singing, family bonding, and sometimes a mini-feast too.",
+  'music': "The big pre-wedding party with all the dancing! Friends and family perform choreographed dances, there's music, outfits on point, and tons of energy. It's like a wedding concert-night.",
+  'horse': "The groom's grand arrival, usually on a horse (or sometimes a car, elephant, or even a tractor). His side dances their way to the wedding venue with a live band and lots of dhol. Pure hype.",
+  'ring': "The main event — the traditional wedding ceremony, often filled with rituals, blessings, and symbolic moments. Could be an hour or several, depending on the traditions followed.",
+  'champagne-glasses': "The after-party! The newlyweds are officially introduced, there are speeches, great food, dancing, and everyone's dressed to the nines. It's the last hurrah of the wedding week."
+};
 
 // Helper function to get emoji from icon value
 const getEventEmoji = (iconValue: string) => {
   const icon = eventIcons.find(icon => icon.value === iconValue);
   return icon ? icon.emoji : iconValue.startsWith('🎉') ? iconValue : '📅';
+};
+
+// Helper function to get description suggestion
+const getEventSuggestion = (iconValue: string) => {
+  return eventDescriptions[iconValue as keyof typeof eventDescriptions] || '';
 };
 
 const eventColors = [
@@ -135,6 +153,20 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       guestCount: weddingProfile.guestCount || 0,
     },
   });
+
+  // Watch for icon changes to auto-populate description
+  const selectedIcon = form.watch('icon');
+  
+  // Auto-populate description when icon changes (only if description is empty and not editing)
+  useEffect(() => {
+    const currentDescription = form.getValues('description');
+    if (!currentDescription && selectedIcon && !editingEvent) {
+      const suggestion = getEventSuggestion(selectedIcon);
+      if (suggestion) {
+        form.setValue('description', suggestion);
+      }
+    }
+  }, [selectedIcon, form, editingEvent]);
 
   const onSubmit = (data: EventFormData) => {
     console.log('Form data:', data);
@@ -247,6 +279,24 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Description</FormLabel>
+                          {selectedIcon && getEventSuggestion(selectedIcon) && (
+                            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md mb-2">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <strong>Suggestion:</strong> {getEventSuggestion(selectedIcon)}
+                                </div>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="ml-2 h-6 px-2 text-xs"
+                                  onClick={() => form.setValue('description', getEventSuggestion(selectedIcon))}
+                                >
+                                  Use
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                           <FormControl>
                             <Textarea placeholder="Enter event description" {...field} />
                           </FormControl>
