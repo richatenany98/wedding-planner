@@ -58,7 +58,9 @@ const getEventEmoji = (iconValue: string) => {
 
 // Helper function to get description suggestion
 const getEventSuggestion = (iconValue: string) => {
-  return eventDescriptions[iconValue as keyof typeof eventDescriptions] || '';
+  const description = eventDescriptions[iconValue as keyof typeof eventDescriptions] || '';
+  console.log('Getting suggestion for icon:', iconValue, 'Description:', description);
+  return description;
 };
 
 const eventColors = [
