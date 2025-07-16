@@ -24,17 +24,17 @@ const eventFormSchema = insertEventSchema.extend({
 type EventFormData = z.infer<typeof eventFormSchema>;
 
 const eventIcons = [
-  { value: 'hand-paper', label: 'Bridal Mehndi', emoji: '💐', color: 'orange' },
-  { value: 'flower', label: 'Ganesh Puja', emoji: '🙏', color: 'yellow' },
-  { value: 'home', label: 'Welcome Party', emoji: '🎉', color: 'blue' },
+  { value: 'hand-paper', label: 'Bridal Mehndi', emoji: '💐', color: 'red' },
+  { value: 'flower', label: 'Ganesh Puja', emoji: '🙏', color: 'orange' },
+  { value: 'home', label: 'Welcome Party', emoji: '🎉', color: 'yellow' },
   { value: 'star', label: 'Grah Shanti', emoji: '🌿', color: 'green' },
-  { value: 'sun', label: 'Haldi', emoji: '🌼', color: 'yellow' },
-  { value: 'sparkles', label: 'Mayra', emoji: '🎁', color: 'purple' },
-  { value: 'music', label: 'Sangeet', emoji: '💃', color: 'pink' },
-  { value: 'horse', label: 'Baraat', emoji: '🐎', color: 'red' },
+  { value: 'sun', label: 'Haldi', emoji: '🌼', color: 'blue' },
+  { value: 'sparkles', label: 'Mayra', emoji: '🎁', color: 'indigo' },
+  { value: 'music', label: 'Sangeet', emoji: '💃', color: 'purple' },
+  { value: 'horse', label: 'Baraat', emoji: '🐎', color: 'pink' },
   { value: 'ring', label: 'Wedding', emoji: '💍', color: 'red' },
-  { value: 'champagne-glasses', label: 'Reception', emoji: '✨', color: 'indigo' },
-  { value: 'heart', label: 'Custom Event', emoji: '💕', color: 'orange' },
+  { value: 'champagne-glasses', label: 'Reception', emoji: '✨', color: 'orange' },
+  { value: 'heart', label: 'Custom Event', emoji: '💕', color: 'yellow' },
 ];
 
 const eventDescriptions = {
@@ -104,7 +104,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         time: '',
         location: '',
         icon: 'flower',
-        color: 'yellow',
+        color: 'orange',
         guestCount: weddingProfile.guestCount || 0,
       });
     },
@@ -125,7 +125,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         time: '',
         location: '',
         icon: 'flower',
-        color: 'yellow',
+        color: 'orange',
         guestCount: weddingProfile.guestCount || 0,
       });
     },
@@ -164,24 +164,13 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       time: '',
       location: '',
       icon: 'flower',
-      color: 'yellow',
+      color: 'orange',
       guestCount: weddingProfile.guestCount || 0,
     },
   });
 
-  // Watch for icon changes to auto-populate description
+  // Watch for icon changes for suggestion display
   const selectedIcon = form.watch('icon');
-  
-  // Auto-populate description when icon changes (only if description is empty and not editing)
-  useEffect(() => {
-    const currentDescription = form.getValues('description');
-    if (!currentDescription && selectedIcon && !editingEvent) {
-      const suggestion = getEventSuggestion(selectedIcon);
-      if (suggestion) {
-        form.setValue('description', suggestion);
-      }
-    }
-  }, [selectedIcon, form, editingEvent]);
 
   const onSubmit = (data: EventFormData) => {
     console.log('Form data:', data);
@@ -267,7 +256,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                   time: '',
                   location: '',
                   icon: 'flower',
-                  color: 'yellow',
+                  color: 'orange',
                   guestCount: weddingProfile.guestCount || 0,
                 });
               }
@@ -297,6 +286,11 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                                 field.onChange(selectedEvent.label);
                                 form.setValue('icon', value);
                                 form.setValue('color', selectedEvent.color);
+                                // Auto-populate description with suggestion
+                                const suggestion = getEventSuggestion(value);
+                                if (suggestion) {
+                                  form.setValue('description', suggestion);
+                                }
                               }
                             }}>
                               <FormControl>
@@ -426,7 +420,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                           time: '',
                           location: '',
                           icon: 'flower',
-                          color: 'yellow',
+                          color: 'orange',
                           guestCount: weddingProfile.guestCount || 0,
                         });
                       }}>
