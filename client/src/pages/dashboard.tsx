@@ -86,6 +86,8 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     queryKey: ['/api/events', weddingProfile.id],
     queryFn: () => fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then(res => res.json()),
     retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const createEventMutation = useMutation({
