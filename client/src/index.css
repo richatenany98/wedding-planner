@@ -31,6 +31,9 @@
   --wedding-green: hsl(142, 71%, 45%);
   --wedding-purple: hsl(271, 81%, 56%);
   --wedding-indigo: hsl(238, 84%, 60%);
+  --wedding-rose: hsl(351, 83%, 61%);
+  --wedding-emerald: hsl(158, 84%, 44%);
+  --wedding-amber: hsl(35, 91%, 51%);
   --wedding-neutral-50: hsl(210, 40%, 98%);
   --wedding-neutral-100: hsl(210, 40%, 96%);
   --wedding-neutral-200: hsl(214, 32%, 91%);
@@ -99,5 +102,29 @@
   
   .wedding-gradient-pink {
     background: linear-gradient(135deg, var(--wedding-pink), var(--wedding-gold));
+  }
+
+  .wedding-gradient-rose {
+    background: linear-gradient(135deg, var(--wedding-rose), hsl(351, 83%, 51%));
+  }
+
+  .wedding-gradient-emerald {
+    background: linear-gradient(135deg, var(--wedding-emerald), hsl(158, 84%, 34%));
+  }
+
+  .wedding-gradient-amber {
+    background: linear-gradient(135deg, var(--wedding-amber), hsl(35, 91%, 41%));
+  }
+
+  .wedding-gradient-orange {
+    background: linear-gradient(135deg, hsl(24, 95%, 53%), hsl(24, 95%, 43%));
+  }
+
+  .wedding-gradient-yellow {
+    background: linear-gradient(135deg, hsl(47, 92%, 50%), hsl(47, 92%, 40%));
+  }
+
+  .wedding-gradient-blue {
+    background: linear-gradient(135deg, hsl(221, 83%, 53%), hsl(221, 83%, 43%));
   }
 }

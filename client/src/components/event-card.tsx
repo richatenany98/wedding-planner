@@ -13,11 +13,17 @@ interface EventCardProps {
 export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
   const getColorClass = (color: string) => {
     const colorMap = {
-      yellow: 'wedding-gradient-gold',
-      green: 'wedding-gradient-green',
-      purple: 'wedding-gradient-purple',
       red: 'wedding-gradient-red',
+      orange: 'wedding-gradient-orange',
+      yellow: 'wedding-gradient-yellow',
+      green: 'wedding-gradient-green',
+      blue: 'wedding-gradient-blue',
       indigo: 'wedding-gradient-indigo',
+      purple: 'wedding-gradient-purple',
+      pink: 'wedding-gradient-pink',
+      rose: 'wedding-gradient-rose',
+      emerald: 'wedding-gradient-emerald',
+      amber: 'wedding-gradient-amber',
     };
     return colorMap[color as keyof typeof colorMap] || 'wedding-gradient-gold';
   };

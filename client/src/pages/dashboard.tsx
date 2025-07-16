@@ -32,9 +32,9 @@ const eventIcons = [
   { value: 'sparkles', label: 'Mayra', emoji: '🎁', color: 'indigo' },
   { value: 'music', label: 'Sangeet', emoji: '💃', color: 'purple' },
   { value: 'horse', label: 'Baraat', emoji: '🐎', color: 'pink' },
-  { value: 'ring', label: 'Wedding', emoji: '💍', color: 'red' },
-  { value: 'champagne-glasses', label: 'Reception', emoji: '✨', color: 'orange' },
-  { value: 'heart', label: 'Custom Event', emoji: '💕', color: 'yellow' },
+  { value: 'ring', label: 'Wedding', emoji: '💍', color: 'rose' },
+  { value: 'champagne-glasses', label: 'Reception', emoji: '✨', color: 'emerald' },
+  { value: 'heart', label: 'Custom Event', emoji: '💕', color: 'amber' },
 ];
 
 const eventDescriptions = {
