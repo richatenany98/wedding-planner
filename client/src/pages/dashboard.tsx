@@ -103,7 +103,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         date: getDefaultDate(),
         time: '',
         location: '',
-        icon: 'flower',
+        icon: '',
         color: 'orange',
         guestCount: weddingProfile.guestCount || 0,
       });
@@ -124,7 +124,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         date: getDefaultDate(),
         time: '',
         location: '',
-        icon: 'flower',
+        icon: '',
         color: 'orange',
         guestCount: weddingProfile.guestCount || 0,
       });
@@ -163,7 +163,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       date: getDefaultDate(),
       time: '',
       location: '',
-      icon: 'flower',
+      icon: '',
       color: 'orange',
       guestCount: weddingProfile.guestCount || 0,
     },
@@ -255,7 +255,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                   date: getDefaultDate(),
                   time: '',
                   location: '',
-                  icon: 'flower',
+                  icon: '',
                   color: 'orange',
                   guestCount: weddingProfile.guestCount || 0,
                 });
@@ -286,10 +286,13 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                                 field.onChange(selectedEvent.label);
                                 form.setValue('icon', value);
                                 form.setValue('color', selectedEvent.color);
-                                // Auto-populate description with suggestion
-                                const suggestion = getEventSuggestion(value);
-                                if (suggestion) {
-                                  form.setValue('description', suggestion);
+                                // Only auto-populate description if it's currently empty
+                                const currentDescription = form.getValues('description');
+                                if (!currentDescription.trim()) {
+                                  const suggestion = getEventSuggestion(value);
+                                  if (suggestion) {
+                                    form.setValue('description', suggestion);
+                                  }
                                 }
                               }
                             }}>
@@ -324,7 +327,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Description</FormLabel>
-                          {selectedIcon && getEventSuggestion(selectedIcon) && (
+                          {selectedIcon && getEventSuggestion(selectedIcon) && !form.getValues('description').trim() && (
                             <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md mb-2">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
@@ -419,7 +422,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                           date: getDefaultDate(),
                           time: '',
                           location: '',
-                          icon: 'flower',
+                          icon: '',
                           color: 'orange',
                           guestCount: weddingProfile.guestCount || 0,
                         });
