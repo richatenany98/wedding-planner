@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, CalendarDays } from 'lucide-react';
+import { Plus, CalendarDays, Clock, MapPin, Users, Edit, Trash2 } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { Event, insertEventSchema, WeddingProfile } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
@@ -55,19 +55,22 @@ interface DashboardProps {
 export default function Dashboard({ weddingProfile }: DashboardProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const queryClient = useQueryClient();
 
   const { data: events = [], isLoading } = useQuery<Event[]>({
-    queryKey: ['/api/events'],
+    queryKey: ['/api/events', weddingProfile.id],
+    queryFn: () => fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then(res => res.json()),
   });
 
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
-      const response = await apiRequest('POST', '/api/events', data);
+      const eventData = { ...data, weddingProfileId: weddingProfile.id };
+      const response = await apiRequest('POST', '/api/events', eventData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', weddingProfile.id] });
       setIsAddDialogOpen(false);
       form.reset();
     },
@@ -79,7 +82,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', weddingProfile.id] });
       setEditingEvent(null);
     },
   });
@@ -89,7 +92,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       await apiRequest('DELETE', `/api/events/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events', weddingProfile.id] });
     },
   });
 
@@ -334,30 +337,27 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       </header>
 
       {/* Content */}
-      <div className="p-6 space-y-6">
-        {/* Schedule Timeline View */}
+      <div className="p-6">
+        {/* Timeline View */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="w-5 h-5" />
-              Event Schedule
+              Wedding Timeline
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-1">
               {events
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((event, index) => (
-                  <div key={event.id} className={`flex items-center space-x-4 p-4 rounded-lg border-l-4 ${
-                    event.color === 'yellow' ? 'bg-yellow-50 border-yellow-500' :
-                    event.color === 'orange' ? 'bg-orange-50 border-orange-500' :
-                    event.color === 'green' ? 'bg-green-50 border-green-500' :
-                    event.color === 'purple' ? 'bg-purple-50 border-purple-500' :
-                    event.color === 'red' ? 'bg-red-50 border-red-500' :
-                    'bg-blue-50 border-blue-500'
-                  }`}>
-                    <div className="flex-shrink-0 w-16 text-center">
-                      <div className="text-sm font-medium text-gray-600">
+                  <div 
+                    key={event.id} 
+                    className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    <div className="flex-shrink-0 w-20 text-center">
+                      <div className="text-sm font-medium text-gray-900">
                         {new Date(event.date).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric' 
@@ -379,75 +379,135 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                         'bg-blue-500'
                       }`}></div>
                       {index < events.length - 1 && (
-                        <div className="w-0.5 h-8 bg-gray-300 mx-auto mt-1"></div>
+                        <div className="w-0.5 h-6 bg-gray-300 mx-auto mt-1"></div>
                       )}
                     </div>
                     <div className="flex-grow">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="font-medium text-gray-900">{event.name}</h3>
-                          <p className="text-sm text-gray-600">{event.time}</p>
-                          <p className="text-sm text-gray-500">{event.location}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-500">{event.guestCount} guests</span>
-                          <div className="flex space-x-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(event)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete(event.id)}
-                            >
-                              Delete
-                            </Button>
+                          <div className="flex items-center space-x-3 text-sm text-gray-500">
+                            <span className="flex items-center">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {event.time}
+                            </span>
+                            <span className="flex items-center">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              {event.location}
+                            </span>
+                            <span className="flex items-center">
+                              <Users className="w-3 h-3 mr-1" />
+                              {event.guestCount} guests
+                            </span>
                           </div>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(event);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(event.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
+              
+              {/* Add Event Button */}
+              <div 
+                className="flex items-center space-x-4 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
+                <div className="flex-shrink-0 w-20"></div>
+                <div className="flex-shrink-0">
+                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                </div>
+                <div className="flex-grow">
+                  <div className="flex items-center">
+                    <Plus className="w-4 h-4 mr-2 text-gray-500" />
+                    <span className="text-gray-600">Add New Event</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Events Grid View */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">All Events</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {events
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onEdit={() => handleEdit(event)}
-                  onDelete={() => handleDelete(event.id)}
-                />
-              ))}
-            
-            {/* Add Event Card */}
-            <Card 
-              className="border-2 border-dashed border-neutral-300 hover:border-primary transition-colors cursor-pointer"
-              onClick={() => setIsAddDialogOpen(true)}
-            >
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center justify-center h-full text-center min-h-[200px]">
-                  <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mb-4">
-                    <Plus className="text-neutral-400" size={24} />
+        {/* Event Details Drawer */}
+        {selectedEvent && (
+          <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{selectedEvent.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Date & Time</h4>
+                    <p className="text-sm text-gray-600">
+                      {new Date(selectedEvent.date).toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                    <p className="text-sm text-gray-600">{selectedEvent.time}</p>
                   </div>
-                  <h3 className="font-semibold text-neutral-700 mb-2">Add New Event</h3>
-                  <p className="text-sm text-neutral-500">Create another wedding ceremony</p>
+                  <div>
+                    <h4 className="font-medium mb-2">Location</h4>
+                    <p className="text-sm text-gray-600">{selectedEvent.location}</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                <div>
+                  <h4 className="font-medium mb-2">Guest Count</h4>
+                  <p className="text-sm text-gray-600">{selectedEvent.guestCount} guests expected</p>
+                </div>
+                {selectedEvent.description && (
+                  <div>
+                    <h4 className="font-medium mb-2">Description</h4>
+                    <p className="text-sm text-gray-600">{selectedEvent.description}</p>
+                  </div>
+                )}
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedEvent(null);
+                      handleEdit(selectedEvent);
+                    }}
+                  >
+                    Edit Event
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setSelectedEvent(null);
+                      handleDelete(selectedEvent.id);
+                    }}
+                  >
+                    Delete Event
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );

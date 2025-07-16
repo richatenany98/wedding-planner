@@ -213,8 +213,11 @@ export class MemStorage implements IStorage {
   }
 
   // Event methods
-  async getEvents(): Promise<Event[]> {
-    return Array.from(this.events.values());
+  async getEvents(weddingProfileId?: number): Promise<Event[]> {
+    const events = Array.from(this.events.values());
+    return weddingProfileId 
+      ? events.filter(event => event.weddingProfileId === weddingProfileId)
+      : events;
   }
 
   async getEvent(id: number): Promise<Event | undefined> {
@@ -227,7 +230,7 @@ export class MemStorage implements IStorage {
       ...insertEvent, 
       id, 
       progress: 0, 
-      guestCount: 0,
+      guestCount: insertEvent.guestCount || 0,
       description: insertEvent.description || null
     };
     this.events.set(id, event);

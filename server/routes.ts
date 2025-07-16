@@ -76,7 +76,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Events routes
   app.get("/api/events", async (req, res) => {
     try {
-      const events = await storage.getEvents();
+      const weddingProfileId = req.query.weddingProfileId ? parseInt(req.query.weddingProfileId as string) : undefined;
+      const events = await storage.getEvents(weddingProfileId);
       // Sort events by date for consistent ordering
       const sortedEvents = events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       res.json(sortedEvents);

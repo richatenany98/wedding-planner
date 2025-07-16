@@ -38,6 +38,7 @@ export const events = pgTable("events", {
   icon: text("icon").notNull(),
   color: text("color").notNull(),
   guestCount: integer("guest_count").default(0),
+  weddingProfileId: integer("wedding_profile_id").notNull(),
 });
 
 export const guests = pgTable("guests", {
@@ -118,6 +119,8 @@ export const insertEventSchema = createInsertSchema(events).pick({
   location: true,
   icon: true,
   color: true,
+  guestCount: true,
+  weddingProfileId: true,
 });
 
 export const insertGuestSchema = createInsertSchema(guests).pick({
