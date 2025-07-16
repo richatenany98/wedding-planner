@@ -37,6 +37,12 @@ const eventIcons = [
   { value: 'calendar', label: 'Calendar (Event)', emoji: '📅' },
 ];
 
+// Helper function to get emoji from icon value
+const getEventEmoji = (iconValue: string) => {
+  const icon = eventIcons.find(icon => icon.value === iconValue);
+  return icon ? icon.emoji : iconValue.startsWith('🎉') ? iconValue : '📅';
+};
+
 const eventColors = [
   { value: 'yellow', label: 'Yellow/Gold' },
   { value: 'orange', label: 'Orange' },
@@ -447,7 +453,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       <div className="flex items-center justify-between">
                         <div className="flex-grow">
                           <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-xl">{event.icon}</span>
+                            <span className="text-xl">{getEventEmoji(event.icon)}</span>
                             <h3 className="font-semibold text-gray-900 text-lg">{event.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mb-2">{event.description}</p>
