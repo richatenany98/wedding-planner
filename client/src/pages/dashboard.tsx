@@ -399,7 +399,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
           <CardContent>
             <div className="space-y-1">
               {Array.isArray(events) && events
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime())
                 .map((event, index) => (
                   <div 
                     key={event.id} 
@@ -408,13 +408,13 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                   >
                     <div className="flex-shrink-0 w-20 text-center">
                       <div className="text-sm font-medium text-gray-900">
-                        {new Date(event.date).toLocaleDateString('en-US', { 
+                        {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric' 
                         })}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {new Date(event.date).toLocaleDateString('en-US', { 
+                        {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { 
                           weekday: 'short' 
                         })}
                       </div>
