@@ -66,16 +66,30 @@ export function GuestTable() {
       name: '',
       email: '',
       phone: '',
-      side: '',
-      rsvpStatus: 'pending',
+      side: 'tenany',
+      rsvpStatus: 'confirmed',
     },
   });
 
+  const capitalizeWords = (str: string) => {
+    return str.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
   const onSubmit = (data: GuestFormData) => {
+    // Capitalize name and side
+    const processedData = {
+      ...data,
+      name: capitalizeWords(data.name),
+      side: data.side.charAt(0).toUpperCase() + data.side.slice(1).toLowerCase(),
+      rsvpStatus: data.rsvpStatus.charAt(0).toUpperCase() + data.rsvpStatus.slice(1).toLowerCase(),
+    };
+
     if (editingGuest) {
-      updateGuestMutation.mutate({ id: editingGuest.id, data });
+      updateGuestMutation.mutate({ id: editingGuest.id, data: processedData });
     } else {
-      createGuestMutation.mutate(data);
+      createGuestMutation.mutate(processedData);
     }
   };
 
@@ -101,8 +115,11 @@ export function GuestTable() {
   const getSideColor = (side: string) => {
     const colors = {
       'tenany': 'bg-blue-100 text-blue-800',
+      'Tenany': 'bg-blue-100 text-blue-800',
       'patel': 'bg-green-100 text-green-800',
+      'Patel': 'bg-green-100 text-green-800',
       'friends': 'bg-purple-100 text-purple-800',
+      'Friends': 'bg-purple-100 text-purple-800',
     };
     return colors[side as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
@@ -110,8 +127,11 @@ export function GuestTable() {
   const getRsvpColor = (status: string) => {
     const colors = {
       'confirmed': 'bg-green-100 text-green-800',
+      'Confirmed': 'bg-green-100 text-green-800',
       'pending': 'bg-yellow-100 text-yellow-800',
+      'Pending': 'bg-yellow-100 text-yellow-800',
       'declined': 'bg-red-100 text-red-800',
+      'Declined': 'bg-red-100 text-red-800',
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };

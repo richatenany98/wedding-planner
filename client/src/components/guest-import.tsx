@@ -24,6 +24,12 @@ export function GuestImport() {
   const [isBulkAddDialogOpen, setIsBulkAddDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  const capitalizeWords = (str: string) => {
+    return str.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
   const bulkAddMutation = useMutation({
     mutationFn: async (data: BulkAddFormData) => {
       const lines = data.guestList.split('\n').filter(line => line.trim());
@@ -34,11 +40,11 @@ export function GuestImport() {
         const phone = parts[2]?.trim() || '';
         
         return {
-          name,
+          name: name ? capitalizeWords(name) : '',
           email: email || undefined,
           phone: phone || undefined,
-          side: data.side,
-          rsvpStatus: data.rsvpStatus,
+          side: data.side.charAt(0).toUpperCase() + data.side.slice(1).toLowerCase(),
+          rsvpStatus: data.rsvpStatus.charAt(0).toUpperCase() + data.rsvpStatus.slice(1).toLowerCase(),
         };
       });
 
@@ -60,7 +66,7 @@ export function GuestImport() {
     defaultValues: {
       guestList: '',
       side: 'tenany',
-      rsvpStatus: 'pending',
+      rsvpStatus: 'confirmed',
     },
   });
 
