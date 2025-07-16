@@ -24,17 +24,17 @@ const eventFormSchema = insertEventSchema.extend({
 type EventFormData = z.infer<typeof eventFormSchema>;
 
 const eventIcons = [
-  { value: 'hand-paper', label: 'Bridal Mehndi', emoji: '💐' },
-  { value: 'flower', label: 'Ganesh Puja', emoji: '🙏' },
-  { value: 'home', label: 'Welcome Party', emoji: '🎉' },
-  { value: 'star', label: 'Grah Shanti', emoji: '🌿' },
-  { value: 'sun', label: 'Haldi', emoji: '🌼' },
-  { value: 'sparkles', label: 'Mayra', emoji: '🎁' },
-  { value: 'music', label: 'Sangeet', emoji: '💃' },
-  { value: 'horse', label: 'Baraat', emoji: '🐎' },
-  { value: 'ring', label: 'Wedding', emoji: '💍' },
-  { value: 'champagne-glasses', label: 'Reception', emoji: '✨' },
-  { value: 'heart', label: 'Custom Event', emoji: '💕' },
+  { value: 'hand-paper', label: 'Bridal Mehndi', emoji: '💐', color: 'orange' },
+  { value: 'flower', label: 'Ganesh Puja', emoji: '🙏', color: 'yellow' },
+  { value: 'home', label: 'Welcome Party', emoji: '🎉', color: 'blue' },
+  { value: 'star', label: 'Grah Shanti', emoji: '🌿', color: 'green' },
+  { value: 'sun', label: 'Haldi', emoji: '🌼', color: 'yellow' },
+  { value: 'sparkles', label: 'Mayra', emoji: '🎁', color: 'purple' },
+  { value: 'music', label: 'Sangeet', emoji: '💃', color: 'pink' },
+  { value: 'horse', label: 'Baraat', emoji: '🐎', color: 'red' },
+  { value: 'ring', label: 'Wedding', emoji: '💍', color: 'red' },
+  { value: 'champagne-glasses', label: 'Reception', emoji: '✨', color: 'indigo' },
+  { value: 'heart', label: 'Custom Event', emoji: '💕', color: 'orange' },
 ];
 
 const eventDescriptions = {
@@ -100,11 +100,11 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       form.reset({
         name: '',
         description: '',
-        date: '',
+        date: getDefaultDate(),
         time: '',
         location: '',
         icon: 'flower',
-        color: 'orange',
+        color: 'yellow',
         guestCount: weddingProfile.guestCount || 0,
       });
     },
@@ -121,11 +121,11 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       form.reset({
         name: '',
         description: '',
-        date: '',
+        date: getDefaultDate(),
         time: '',
         location: '',
         icon: 'flower',
-        color: 'orange',
+        color: 'yellow',
         guestCount: weddingProfile.guestCount || 0,
       });
     },
@@ -140,16 +140,31 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     },
   });
 
+  // Get default date within wedding timeframe
+  const getDefaultDate = () => {
+    const startDate = new Date(weddingProfile.weddingStartDate);
+    const endDate = new Date(weddingProfile.weddingEndDate);
+    const today = new Date();
+    
+    // If today is within the wedding timeframe, use today
+    if (today >= startDate && today <= endDate) {
+      return today.toISOString().split('T')[0];
+    }
+    
+    // Otherwise, use the start date
+    return startDate.toISOString().split('T')[0];
+  };
+
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
       name: '',
       description: '',
-      date: '',
+      date: getDefaultDate(),
       time: '',
       location: '',
       icon: 'flower',
-      color: 'orange',
+      color: 'yellow',
       guestCount: weddingProfile.guestCount || 0,
     },
   });
@@ -245,7 +260,16 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
               if (!open) {
                 setIsAddDialogOpen(false);
                 setEditingEvent(null);
-                form.reset();
+                form.reset({
+                  name: '',
+                  description: '',
+                  date: getDefaultDate(),
+                  time: '',
+                  location: '',
+                  icon: 'flower',
+                  color: 'yellow',
+                  guestCount: weddingProfile.guestCount || 0,
+                });
               }
             }}>
               <DialogTrigger asChild>
@@ -265,23 +289,19 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Event Type</FormLabel>
-                          <div className="space-y-2">
+                          <FormLabel>Event Name</FormLabel>
+                          <div className="relative">
                             <Select onValueChange={(value) => {
-                              if (value !== 'custom') {
-                                const selectedEvent = eventIcons.find(icon => icon.value === value);
-                                if (selectedEvent) {
-                                  field.onChange(selectedEvent.label);
-                                  form.setValue('icon', value);
-                                }
-                              } else {
-                                field.onChange('');
-                                form.setValue('icon', 'heart');
+                              const selectedEvent = eventIcons.find(icon => icon.value === value);
+                              if (selectedEvent) {
+                                field.onChange(selectedEvent.label);
+                                form.setValue('icon', value);
+                                form.setValue('color', selectedEvent.color);
                               }
                             }}>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select event type or choose custom" />
+                                <SelectTrigger className="absolute right-0 top-0 w-10 h-full border-0 bg-transparent">
+                                  <SelectValue />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -290,15 +310,13 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                                     {icon.emoji} {icon.label}
                                   </SelectItem>
                                 ))}
-                                <SelectItem value="custom">
-                                  💕 Custom Event
-                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormControl>
                               <Input 
-                                placeholder="Enter custom event name or modify selected" 
+                                placeholder="Enter event name or select from dropdown"
                                 {...field}
+                                className="pr-12"
                               />
                             </FormControl>
                           </div>
@@ -378,30 +396,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="color"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Color Theme</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select color theme" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {eventColors.map((color) => (
-                                <SelectItem key={color.value} value={color.value}>
-                                  {color.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
                     <FormField
                       control={form.control}
                       name="guestCount"
@@ -427,11 +422,11 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                         form.reset({
                           name: '',
                           description: '',
-                          date: '',
+                          date: getDefaultDate(),
                           time: '',
                           location: '',
                           icon: 'flower',
-                          color: 'orange',
+                          color: 'yellow',
                           guestCount: weddingProfile.guestCount || 0,
                         });
                       }}>
