@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus } from 'lucide-react';
+import { Plus, CalendarDays } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { Event, insertEventSchema, WeddingProfile } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
@@ -334,32 +334,119 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       </header>
 
       {/* Content */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onEdit={() => handleEdit(event)}
-              onDelete={() => handleDelete(event.id)}
-            />
-          ))}
-          
-          {/* Add Event Card */}
-          <Card 
-            className="border-2 border-dashed border-neutral-300 hover:border-primary transition-colors cursor-pointer"
-            onClick={() => setIsAddDialogOpen(true)}
-          >
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center justify-center h-full text-center min-h-[200px]">
-                <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mb-4">
-                  <Plus className="text-neutral-400" size={24} />
+      <div className="p-6 space-y-6">
+        {/* Schedule Timeline View */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays className="w-5 h-5" />
+              Event Schedule
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {events
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((event, index) => (
+                  <div key={event.id} className={`flex items-center space-x-4 p-4 rounded-lg border-l-4 ${
+                    event.color === 'yellow' ? 'bg-yellow-50 border-yellow-500' :
+                    event.color === 'orange' ? 'bg-orange-50 border-orange-500' :
+                    event.color === 'green' ? 'bg-green-50 border-green-500' :
+                    event.color === 'purple' ? 'bg-purple-50 border-purple-500' :
+                    event.color === 'red' ? 'bg-red-50 border-red-500' :
+                    'bg-blue-50 border-blue-500'
+                  }`}>
+                    <div className="flex-shrink-0 w-16 text-center">
+                      <div className="text-sm font-medium text-gray-600">
+                        {new Date(event.date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(event.date).toLocaleDateString('en-US', { 
+                          weekday: 'short' 
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <div className={`w-3 h-3 rounded-full ${
+                        event.color === 'yellow' ? 'bg-yellow-500' :
+                        event.color === 'orange' ? 'bg-orange-500' :
+                        event.color === 'green' ? 'bg-green-500' :
+                        event.color === 'purple' ? 'bg-purple-500' :
+                        event.color === 'red' ? 'bg-red-500' :
+                        'bg-blue-500'
+                      }`}></div>
+                      {index < events.length - 1 && (
+                        <div className="w-0.5 h-8 bg-gray-300 mx-auto mt-1"></div>
+                      )}
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{event.name}</h3>
+                          <p className="text-sm text-gray-600">{event.time}</p>
+                          <p className="text-sm text-gray-500">{event.location}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-500">{event.guestCount} guests</span>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(event)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(event.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Events Grid View */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">All Events</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {events
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onEdit={() => handleEdit(event)}
+                  onDelete={() => handleDelete(event.id)}
+                />
+              ))}
+            
+            {/* Add Event Card */}
+            <Card 
+              className="border-2 border-dashed border-neutral-300 hover:border-primary transition-colors cursor-pointer"
+              onClick={() => setIsAddDialogOpen(true)}
+            >
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center justify-center h-full text-center min-h-[200px]">
+                  <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mb-4">
+                    <Plus className="text-neutral-400" size={24} />
+                  </div>
+                  <h3 className="font-semibold text-neutral-700 mb-2">Add New Event</h3>
+                  <p className="text-sm text-neutral-500">Create another wedding ceremony</p>
                 </div>
-                <h3 className="font-semibold text-neutral-700 mb-2">Add New Event</h3>
-                <p className="text-sm text-neutral-500">Create another wedding ceremony</p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

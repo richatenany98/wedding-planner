@@ -77,7 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events", async (req, res) => {
     try {
       const events = await storage.getEvents();
-      res.json(events);
+      // Sort events by date for consistent ordering
+      const sortedEvents = events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      res.json(sortedEvents);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch events" });
     }
