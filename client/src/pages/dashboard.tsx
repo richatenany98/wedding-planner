@@ -61,6 +61,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events', weddingProfile.id],
     queryFn: () => fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then(res => res.json()),
+    retry: false,
   });
 
   const createEventMutation = useMutation({
@@ -348,7 +349,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {events
+              {Array.isArray(events) && events
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((event, index) => (
                   <div 
