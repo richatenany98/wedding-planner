@@ -412,7 +412,34 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
             ) : (
               <div className="space-y-3">
                 {Array.isArray(events) && events
-                  .sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime())
+                  .sort((a, b) => {
+                  // First sort by date
+                  const dateA = new Date(a.date + 'T00:00:00').getTime();
+                  const dateB = new Date(b.date + 'T00:00:00').getTime();
+                  
+                  if (dateA !== dateB) {
+                    return dateA - dateB;
+                  }
+                  
+                  // If dates are the same, sort by time
+                  const parseTime = (timeStr: string) => {
+                    // Extract first time from strings like "11AM - 1PM" or "6:00 PM - 11:30 PM"
+                    const match = timeStr.match(/(\d{1,2}):?(\d{0,2})\s*(AM|PM)/i);
+                    if (match) {
+                      let hours = parseInt(match[1]);
+                      const minutes = parseInt(match[2] || '0');
+                      const ampm = match[3].toUpperCase();
+                      
+                      if (ampm === 'PM' && hours !== 12) hours += 12;
+                      if (ampm === 'AM' && hours === 12) hours = 0;
+                      
+                      return hours * 60 + minutes; // Convert to minutes for comparison
+                    }
+                    return 0;
+                  };
+                  
+                  return parseTime(a.time) - parseTime(b.time);
+                })
                   .map((event, index) => (
                   <div 
                     key={event.id} 
