@@ -53,7 +53,8 @@ function App() {
       // Check if events exist for this profile
       const checkEvents = async () => {
         try {
-          const eventsResponse = await apiRequest('GET', '/api/events');
+          const profile = JSON.parse(savedProfile);
+          const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
           const events = await eventsResponse.json();
           
           // If no events exist, user needs to set up events
@@ -84,7 +85,7 @@ function App() {
         localStorage.setItem('weddingProfile', JSON.stringify(profile));
         
         // Check if events exist for this profile
-        const eventsResponse = await apiRequest('GET', '/api/events');
+        const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
         const events = await eventsResponse.json();
         
         // If no events exist, user needs to set up events
