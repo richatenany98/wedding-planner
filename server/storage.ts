@@ -7,6 +7,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   
   // Wedding Profile methods
   getWeddingProfile(id: number): Promise<WeddingProfile | undefined>;
@@ -51,27 +52,35 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private weddingProfiles: Map<number, WeddingProfile>;
   private events: Map<number, Event>;
   private guests: Map<number, Guest>;
   private tasks: Map<number, Task>;
   private budgetItems: Map<number, BudgetItem>;
+  private vendors: Map<number, Vendor>;
   private currentUserId: number;
+  private currentWeddingProfileId: number;
   private currentEventId: number;
   private currentGuestId: number;
   private currentTaskId: number;
   private currentBudgetItemId: number;
+  private currentVendorId: number;
 
   constructor() {
     this.users = new Map();
+    this.weddingProfiles = new Map();
     this.events = new Map();
     this.guests = new Map();
     this.tasks = new Map();
     this.budgetItems = new Map();
+    this.vendors = new Map();
     this.currentUserId = 1;
+    this.currentWeddingProfileId = 1;
     this.currentEventId = 1;
     this.currentGuestId = 1;
     this.currentTaskId = 1;
     this.currentBudgetItemId = 1;
+    this.currentVendorId = 1;
     
     this.seedData();
   }
@@ -217,6 +226,41 @@ export class MemStorage implements IStorage {
     return user;
   }
 
+  async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...userUpdate };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  // Wedding Profile methods
+  async getWeddingProfile(id: number): Promise<WeddingProfile | undefined> {
+    return this.weddingProfiles.get(id);
+  }
+
+  async createWeddingProfile(insertProfile: InsertWeddingProfile): Promise<WeddingProfile> {
+    const id = this.currentWeddingProfileId++;
+    const profile: WeddingProfile = { 
+      ...insertProfile, 
+      id,
+      createdAt: new Date(),
+      isComplete: insertProfile.isComplete || false
+    };
+    this.weddingProfiles.set(id, profile);
+    return profile;
+  }
+
+  async updateWeddingProfile(id: number, profileUpdate: Partial<WeddingProfile>): Promise<WeddingProfile | undefined> {
+    const profile = this.weddingProfiles.get(id);
+    if (!profile) return undefined;
+    
+    const updatedProfile = { ...profile, ...profileUpdate };
+    this.weddingProfiles.set(id, updatedProfile);
+    return updatedProfile;
+  }
+
   // Event methods
   async getEvents(): Promise<Event[]> {
     return Array.from(this.events.values());
@@ -358,6 +402,42 @@ export class MemStorage implements IStorage {
   async deleteBudgetItem(id: number): Promise<boolean> {
     return this.budgetItems.delete(id);
   }
+
+  // Vendor methods
+  async getVendors(): Promise<Vendor[]> {
+    return Array.from(this.vendors.values());
+  }
+
+  async getVendor(id: number): Promise<Vendor | undefined> {
+    return this.vendors.get(id);
+  }
+
+  async createVendor(insertVendor: InsertVendor): Promise<Vendor> {
+    const id = this.currentVendorId++;
+    const vendor: Vendor = {
+      ...insertVendor,
+      id,
+      contactInfo: insertVendor.contactInfo || null,
+      notes: insertVendor.notes || null,
+      contractUploaded: insertVendor.contractUploaded || false,
+      eventId: insertVendor.eventId || null
+    };
+    this.vendors.set(id, vendor);
+    return vendor;
+  }
+
+  async updateVendor(id: number, vendorUpdate: Partial<Vendor>): Promise<Vendor | undefined> {
+    const vendor = this.vendors.get(id);
+    if (!vendor) return undefined;
+    
+    const updatedVendor = { ...vendor, ...vendorUpdate };
+    this.vendors.set(id, updatedVendor);
+    return updatedVendor;
+  }
+
+  async deleteVendor(id: number): Promise<boolean> {
+    return this.vendors.delete(id);
+  }
 }
 
 // Database storage implementation
@@ -378,6 +458,15 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(userUpdate)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
   }
 
   async getEvents(): Promise<Event[]> {

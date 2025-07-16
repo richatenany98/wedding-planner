@@ -79,6 +79,13 @@ function App() {
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
+    
+    // Update user with wedding profile ID
+    if (user) {
+      const updatedUser = { ...user, weddingProfileId: profile.id };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
   };
 
   const handleLogout = () => {

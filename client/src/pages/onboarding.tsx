@@ -123,6 +123,7 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
     try {
       const response = await apiRequest('POST', '/api/wedding-profile', {
         ...data,
+        userId: user.id,
         isComplete: true,
       });
       const weddingProfile = await response.json();

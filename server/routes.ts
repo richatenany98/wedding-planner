@@ -47,8 +47,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const profileData = insertWeddingProfileSchema.parse(req.body);
       const weddingProfile = await storage.createWeddingProfile(profileData);
+      
+      // If userId is provided, associate the profile with the user
+      if (req.body.userId) {
+        await storage.updateUser(req.body.userId, { weddingProfileId: weddingProfile.id });
+      }
+      
       res.status(201).json(weddingProfile);
     } catch (error) {
+      console.error("Wedding profile creation error:", error);
       res.status(400).json({ error: "Failed to create wedding profile" });
     }
   });
