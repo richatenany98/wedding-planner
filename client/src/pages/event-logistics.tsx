@@ -139,6 +139,7 @@ export default function EventLogistics({ weddingProfile, onComplete }: EventLogi
         icon: currentEvent.icon,
         color: currentEvent.color,
         progress: 0,
+        weddingProfileId: weddingProfile.id,
       };
 
       await apiRequest('POST', '/api/events', eventData);

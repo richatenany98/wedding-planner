@@ -81,7 +81,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         location: '',
         icon: 'flower',
         color: 'orange',
-        guestCount: 0,
+        guestCount: weddingProfile.guestCount || 0,
       });
     },
   });
@@ -102,7 +102,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         location: '',
         icon: 'flower',
         color: 'orange',
-        guestCount: 0,
+        guestCount: weddingProfile.guestCount || 0,
       });
     },
   });
@@ -126,7 +126,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       location: '',
       icon: 'flower',
       color: 'orange',
-      guestCount: 0,
+      guestCount: weddingProfile.guestCount || 0,
     },
   });
 
@@ -369,7 +369,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                           location: '',
                           icon: 'flower',
                           color: 'orange',
-                          guestCount: 0,
+                          guestCount: weddingProfile.guestCount || 0,
                         });
                       }}>
                         Cancel
