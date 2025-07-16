@@ -86,6 +86,19 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
+    // Seed a test user for development
+    const testUser = {
+      username: 'sarah.johnson',
+      email: 'sarah@example.com',
+      password: 'password123',
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      weddingProfileId: null,
+    };
+    
+    const userId = this.currentUserId++;
+    this.users.set(userId, { ...testUser, id: userId });
+
     // No default events - users will set up their own events
 
     // Seed budget items
