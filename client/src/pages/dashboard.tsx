@@ -397,64 +397,80 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-1">
-              {Array.isArray(events) && events
-                .sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime())
-                .map((event, index) => (
+            {Array.isArray(events) && events.length === 0 ? (
+              <div className="text-center py-8">
+                <CalendarDays className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">No events scheduled yet</p>
+                <p className="text-sm text-gray-400">Add your first event to start planning your wedding timeline</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {Array.isArray(events) && events
+                  .sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime())
+                  .map((event, index) => (
                   <div 
                     key={event.id} 
-                    className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-100"
                     onClick={() => setSelectedEvent(event)}
                   >
-                    <div className="flex-shrink-0 w-20 text-center">
-                      <div className="text-sm font-medium text-gray-900">
+                    <div className="flex-shrink-0 w-24 text-center">
+                      <div className="text-lg font-bold text-gray-900">
                         {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { 
-                          month: 'short', 
                           day: 'numeric' 
                         })}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-sm font-medium text-gray-700">
                         {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { 
-                          weekday: 'short' 
+                          month: 'short' 
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500 font-medium">
+                        {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { 
+                          weekday: 'long' 
                         })}
                       </div>
                     </div>
-                    <div className="flex-shrink-0">
-                      <div className={`w-3 h-3 rounded-full ${
+                    <div className="flex-shrink-0 flex flex-col items-center">
+                      <div className={`w-4 h-4 rounded-full ${
                         event.color === 'yellow' ? 'bg-yellow-500' :
                         event.color === 'orange' ? 'bg-orange-500' :
                         event.color === 'green' ? 'bg-green-500' :
                         event.color === 'purple' ? 'bg-purple-500' :
                         event.color === 'red' ? 'bg-red-500' :
                         'bg-blue-500'
-                      }`}></div>
+                      } shadow-sm`}></div>
                       {index < events.length - 1 && (
-                        <div className="w-0.5 h-6 bg-gray-300 mx-auto mt-1"></div>
+                        <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
                       )}
                     </div>
                     <div className="flex-grow">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-gray-900">{event.name}</h3>
-                          <div className="flex items-center space-x-3 text-sm text-gray-500">
+                        <div className="flex-grow">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-xl">{event.icon}</span>
+                            <h3 className="font-semibold text-gray-900 text-lg">{event.name}</h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{event.description}</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-500">
                             <span className="flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
+                              <Clock className="w-4 h-4 mr-2" />
                               {event.time}
                             </span>
                             <span className="flex items-center">
-                              <MapPin className="w-3 h-3 mr-1" />
+                              <MapPin className="w-4 h-4 mr-2" />
                               {event.location}
                             </span>
                             <span className="flex items-center">
-                              <Users className="w-3 h-3 mr-1" />
+                              <Users className="w-4 h-4 mr-2" />
                               {event.guestCount} guests
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 ml-4">
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-8 w-8 p-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEdit(event);
@@ -465,6 +481,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-8 w-8 p-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(event.id);
@@ -477,24 +494,8 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                     </div>
                   </div>
                 ))}
-              
-              {/* Add Event Button */}
-              <div 
-                className="flex items-center space-x-4 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => setIsAddDialogOpen(true)}
-              >
-                <div className="flex-shrink-0 w-20"></div>
-                <div className="flex-shrink-0">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                </div>
-                <div className="flex-grow">
-                  <div className="flex items-center">
-                    <Plus className="w-4 h-4 mr-2 text-gray-500" />
-                    <span className="text-gray-600">Add New Event</span>
-                  </div>
-                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
