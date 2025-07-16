@@ -19,7 +19,7 @@ import { z } from 'zod';
 const eventFormSchema = insertEventSchema.extend({
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
-});
+}).omit({ weddingProfileId: true });
 
 type EventFormData = z.infer<typeof eventFormSchema>;
 
@@ -131,6 +131,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
   });
 
   const onSubmit = (data: EventFormData) => {
+    console.log('Form data:', data);
     if (editingEvent) {
       updateEventMutation.mutate({ id: editingEvent.id, data });
     } else {
