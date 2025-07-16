@@ -10,13 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Trash2, Plus } from 'lucide-react';
-import { Guest, Event, insertGuestSchema } from '@shared/schema';
+import { Guest, insertGuestSchema } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { z } from 'zod';
 
-const guestFormSchema = insertGuestSchema.extend({
-  eventIds: z.array(z.string()).optional(),
-});
+const guestFormSchema = insertGuestSchema;
 
 type GuestFormData = z.infer<typeof guestFormSchema>;
 
@@ -29,9 +27,7 @@ export function GuestTable() {
     queryKey: ['/api/guests'],
   });
 
-  const { data: events = [] } = useQuery<Event[]>({
-    queryKey: ['/api/events'],
-  });
+
 
   const createGuestMutation = useMutation({
     mutationFn: async (data: GuestFormData) => {
@@ -70,8 +66,7 @@ export function GuestTable() {
       name: '',
       email: '',
       phone: '',
-      relation: '',
-      eventIds: [],
+      side: '',
       rsvpStatus: 'pending',
     },
   });
@@ -90,8 +85,7 @@ export function GuestTable() {
       name: guest.name,
       email: guest.email || '',
       phone: guest.phone || '',
-      relation: guest.relation,
-      eventIds: guest.eventIds || [],
+      side: guest.side,
       rsvpStatus: guest.rsvpStatus || 'pending',
     });
   };
@@ -102,19 +96,15 @@ export function GuestTable() {
     }
   };
 
-  const getEventName = (eventId: string) => {
-    const event = events.find(e => e.id === parseInt(eventId));
-    return event?.name || '';
-  };
 
-  const getRelationColor = (relation: string) => {
+
+  const getSideColor = (side: string) => {
     const colors = {
-      'Friend': 'bg-blue-100 text-blue-800',
-      'Family': 'bg-green-100 text-green-800',
-      'Colleague': 'bg-purple-100 text-purple-800',
-      'Relative': 'bg-yellow-100 text-yellow-800',
+      'tenany': 'bg-blue-100 text-blue-800',
+      'patel': 'bg-green-100 text-green-800',
+      'friends': 'bg-purple-100 text-purple-800',
     };
-    return colors[relation as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[side as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getRsvpColor = (status: string) => {
@@ -194,21 +184,20 @@ export function GuestTable() {
                 />
                 <FormField
                   control={form.control}
-                  name="relation"
+                  name="side"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Relation</FormLabel>
+                      <FormLabel>Side</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select relation" />
+                            <SelectValue placeholder="Select side" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Friend">Friend</SelectItem>
-                          <SelectItem value="Family">Family</SelectItem>
-                          <SelectItem value="Colleague">Colleague</SelectItem>
-                          <SelectItem value="Relative">Relative</SelectItem>
+                          <SelectItem value="tenany">Tenany</SelectItem>
+                          <SelectItem value="patel">Patel</SelectItem>
+                          <SelectItem value="friends">Friends</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -262,8 +251,7 @@ export function GuestTable() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>Relation</TableHead>
-              <TableHead>Events</TableHead>
+              <TableHead>Side</TableHead>
               <TableHead>RSVP</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -272,30 +260,14 @@ export function GuestTable() {
             {guests.map((guest) => (
               <TableRow key={guest.id}>
                 <TableCell>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {guest.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <span className="font-medium">{guest.name}</span>
-                  </div>
+                  <span className="font-medium">{guest.name}</span>
                 </TableCell>
                 <TableCell>{guest.email || '-'}</TableCell>
                 <TableCell>{guest.phone || '-'}</TableCell>
                 <TableCell>
-                  <Badge className={getRelationColor(guest.relation)}>
-                    {guest.relation}
+                  <Badge className={getSideColor(guest.side)}>
+                    {guest.side}
                   </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {guest.eventIds?.map(eventId => (
-                      <Badge key={eventId} variant="outline" className="text-xs">
-                        {getEventName(eventId)}
-                      </Badge>
-                    ))}
-                  </div>
                 </TableCell>
                 <TableCell>
                   <Badge className={getRsvpColor(guest.rsvpStatus || 'pending')}>

@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 const bulkAddFormSchema = z.object({
   guestList: z.string().min(1, 'Guest list is required'),
-  relation: z.string().min(1, 'Relation is required'),
+  side: z.string().min(1, 'Side is required'),
   rsvpStatus: z.string().min(1, 'RSVP status is required'),
 });
 
@@ -37,7 +37,7 @@ export function GuestImport() {
           name,
           email: email || undefined,
           phone: phone || undefined,
-          relation: data.relation,
+          side: data.side,
           rsvpStatus: data.rsvpStatus,
         };
       });
@@ -59,7 +59,7 @@ export function GuestImport() {
   const bulkForm = useForm<BulkAddFormData>({
     defaultValues: {
       guestList: '',
-      relation: 'Friend',
+      side: 'tenany',
       rsvpStatus: 'pending',
     },
   });
@@ -156,21 +156,20 @@ Amit Patel, amit@email.com, 9876543212`}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={bulkForm.control}
-                  name="relation"
+                  name="side"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Relation</FormLabel>
+                      <FormLabel>Side</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select relation" />
+                            <SelectValue placeholder="Select side" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Friend">Friend</SelectItem>
-                          <SelectItem value="Family">Family</SelectItem>
-                          <SelectItem value="Colleague">Colleague</SelectItem>
-                          <SelectItem value="Relative">Relative</SelectItem>
+                          <SelectItem value="tenany">Tenany</SelectItem>
+                          <SelectItem value="patel">Patel</SelectItem>
+                          <SelectItem value="friends">Friends</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

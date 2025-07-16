@@ -46,8 +46,7 @@ export const guests = pgTable("guests", {
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
-  relation: text("relation").notNull(),
-  eventIds: text("event_ids").array(),
+  side: text("side").notNull(),
   rsvpStatus: text("rsvp_status").default("pending"),
 });
 
@@ -127,8 +126,7 @@ export const insertGuestSchema = createInsertSchema(guests).pick({
   name: true,
   email: true,
   phone: true,
-  relation: true,
-  eventIds: true,
+  side: true,
   rsvpStatus: true,
 });
 
