@@ -73,7 +73,16 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events', weddingProfile.id] });
       setIsAddDialogOpen(false);
-      form.reset();
+      form.reset({
+        name: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        icon: 'flower',
+        color: 'orange',
+        guestCount: 0,
+      });
     },
   });
 
@@ -85,6 +94,16 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events', weddingProfile.id] });
       setEditingEvent(null);
+      form.reset({
+        name: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        icon: 'flower',
+        color: 'orange',
+        guestCount: 0,
+      });
     },
   });
 
@@ -107,6 +126,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       location: '',
       icon: 'flower',
       color: 'orange',
+      guestCount: 0,
     },
   });
 
@@ -128,6 +148,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       location: event.location,
       icon: event.icon,
       color: event.color,
+      guestCount: event.guestCount || 0,
     });
   };
 
@@ -317,11 +338,38 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                         )}
                       />
                     </div>
+                    <FormField
+                      control={form.control}
+                      name="guestCount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expected Guest Count</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Enter number of guests" 
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <div className="flex justify-end space-x-2">
                       <Button type="button" variant="outline" onClick={() => {
                         setIsAddDialogOpen(false);
                         setEditingEvent(null);
-                        form.reset();
+                        form.reset({
+                          name: '',
+                          description: '',
+                          date: '',
+                          time: '',
+                          location: '',
+                          icon: 'flower',
+                          color: 'orange',
+                          guestCount: 0,
+                        });
                       }}>
                         Cancel
                       </Button>
