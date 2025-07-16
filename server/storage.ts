@@ -86,69 +86,7 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Seed default events
-    const defaultEvents = [
-      {
-        name: "Haldi Ceremony",
-        description: "Traditional turmeric ceremony",
-        date: "2024-03-15",
-        time: "10:00 AM - 12:00 PM",
-        location: "Family Home, Mumbai",
-        progress: 75,
-        icon: "sun",
-        color: "yellow",
-        guestCount: 45
-      },
-      {
-        name: "Mehndi Ceremony",
-        description: "Henna application celebration",
-        date: "2024-03-16",
-        time: "4:00 PM - 8:00 PM",
-        location: "Hotel Taj Palace, Delhi",
-        progress: 90,
-        icon: "hand-paper",
-        color: "green",
-        guestCount: 80
-      },
-      {
-        name: "Sangeet Night",
-        description: "Music and dance celebration",
-        date: "2024-03-17",
-        time: "7:00 PM - 11:00 PM",
-        location: "Grand Ballroom, Mumbai",
-        progress: 60,
-        icon: "music",
-        color: "purple",
-        guestCount: 200
-      },
-      {
-        name: "Wedding Ceremony",
-        description: "Sacred wedding rituals",
-        date: "2024-03-18",
-        time: "9:00 AM - 1:00 PM",
-        location: "Temple Gardens, Delhi",
-        progress: 85,
-        icon: "ring",
-        color: "red",
-        guestCount: 350
-      },
-      {
-        name: "Reception",
-        description: "Celebration dinner party",
-        date: "2024-03-18",
-        time: "7:00 PM - 12:00 AM",
-        location: "Luxury Resort, Goa",
-        progress: 40,
-        icon: "champagne-glasses",
-        color: "indigo",
-        guestCount: 500
-      }
-    ];
-
-    defaultEvents.forEach(event => {
-      const id = this.currentEventId++;
-      this.events.set(id, { ...event, id });
-    });
+    // No default events - users will set up their own events
 
     // Seed budget items
     const budgetItems = [

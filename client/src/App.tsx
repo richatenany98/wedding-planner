@@ -13,6 +13,7 @@ import Budget from "@/pages/budget";
 import Vendors from "@/pages/vendors";
 import Login from "@/pages/login";
 import Onboarding from "@/pages/onboarding";
+import EventLogistics from "@/pages/event-logistics";
 import NotFound from "@/pages/not-found";
 import { User, WeddingProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -33,6 +34,7 @@ function Router({ weddingProfile }: { weddingProfile: WeddingProfile }) {
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [weddingProfile, setWeddingProfile] = useState<WeddingProfile | null>(null);
+  const [needsEventSetup, setNeedsEventSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
 
@@ -47,6 +49,23 @@ function App() {
     
     if (savedProfile) {
       setWeddingProfile(JSON.parse(savedProfile));
+      
+      // Check if events exist for this profile
+      const checkEvents = async () => {
+        try {
+          const eventsResponse = await apiRequest('GET', '/api/events');
+          const events = await eventsResponse.json();
+          
+          // If no events exist, user needs to set up events
+          if (events.length === 0) {
+            setNeedsEventSetup(true);
+          }
+        } catch (error) {
+          console.error('Failed to fetch events:', error);
+        }
+      };
+      
+      checkEvents();
     }
     
     setIsLoading(false);
@@ -63,6 +82,15 @@ function App() {
         const profile = await response.json();
         setWeddingProfile(profile);
         localStorage.setItem('weddingProfile', JSON.stringify(profile));
+        
+        // Check if events exist for this profile
+        const eventsResponse = await apiRequest('GET', '/api/events');
+        const events = await eventsResponse.json();
+        
+        // If no events exist, user needs to set up events
+        if (events.length === 0) {
+          setNeedsEventSetup(true);
+        }
       } catch (error) {
         console.error('Failed to fetch wedding profile:', error);
       }
@@ -80,12 +108,12 @@ function App() {
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     
-    // Update user with wedding profile ID
-    if (user) {
-      const updatedUser = { ...user, weddingProfileId: profile.id };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    }
+    // Check if we need to set up events
+    setNeedsEventSetup(true);
+  };
+
+  const handleEventSetupComplete = () => {
+    setNeedsEventSetup(false);
   };
 
   const handleLogout = () => {
@@ -113,6 +141,8 @@ function App() {
           <Login onLogin={handleLogin} />
         ) : !weddingProfile ? (
           <Onboarding user={user} onComplete={handleOnboardingComplete} />
+        ) : needsEventSetup ? (
+          <EventLogistics weddingProfile={weddingProfile} onComplete={handleEventSetupComplete} />
         ) : (
           <div className="min-h-screen flex flex-col lg:flex-row">
             <Sidebar weddingProfile={weddingProfile} onLogout={handleLogout} />

@@ -137,6 +137,36 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     return <div className="flex justify-center p-8">Loading events...</div>;
   }
 
+  if (!events || events.length === 0) {
+    return (
+      <div className="min-h-screen bg-neutral-50">
+        <header className="bg-white shadow-sm border-b border-neutral-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-neutral-800">Wedding Dashboard</h2>
+              <p className="text-neutral-600">{weddingProfile.brideName} & {weddingProfile.groomName} • {weddingProfile.weddingStartDate} - {weddingProfile.weddingEndDate}</p>
+            </div>
+          </div>
+        </header>
+        
+        <div className="p-6">
+          <Card className="p-8 text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Welcome to Your Wedding Dashboard!
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Your wedding events are being set up. Once configured, you'll see all your events here.
+            </p>
+            <div className="text-sm text-gray-500">
+              Wedding Date: {weddingProfile.weddingStartDate} - {weddingProfile.weddingEndDate}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
