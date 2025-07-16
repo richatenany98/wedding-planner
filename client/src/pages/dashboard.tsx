@@ -453,21 +453,21 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       <div className="flex items-center justify-between">
                         <div className="flex-grow">
                           <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-xl">{getEventEmoji(event.icon)}</span>
+                            <span className="text-xl w-6 h-6 flex items-center justify-center flex-shrink-0">{getEventEmoji(event.icon)}</span>
                             <h3 className="font-semibold text-gray-900 text-lg">{event.name}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mb-2">{event.description}</p>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-500">
                             <span className="flex items-center">
-                              <Clock className="w-4 h-4 mr-2" />
+                              <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
                               {event.time}
                             </span>
                             <span className="flex items-center">
-                              <MapPin className="w-4 h-4 mr-2" />
+                              <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
                               {event.location}
                             </span>
                             <span className="flex items-center">
-                              <Users className="w-4 h-4 mr-2" />
+                              <Users className="w-4 h-4 mr-2 flex-shrink-0" />
                               {event.guestCount} guests
                             </span>
                           </div>
@@ -482,7 +482,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                               handleEdit(event);
                             }}
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-4 h-4 flex-shrink-0" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -493,7 +493,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                               handleDelete(event.id);
                             }}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 flex-shrink-0" />
                           </Button>
                         </div>
                       </div>
