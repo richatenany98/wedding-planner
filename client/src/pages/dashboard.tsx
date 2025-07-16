@@ -58,9 +58,7 @@ const getEventEmoji = (iconValue: string) => {
 
 // Helper function to get description suggestion
 const getEventSuggestion = (iconValue: string) => {
-  const description = eventDescriptions[iconValue as keyof typeof eventDescriptions] || '';
-  console.log('Getting suggestion for icon:', iconValue, 'Description:', description);
-  return description;
+  return eventDescriptions[iconValue as keyof typeof eventDescriptions] || '';
 };
 
 const eventColors = [
@@ -267,10 +265,43 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Event Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter event name" {...field} />
-                          </FormControl>
+                          <FormLabel>Event Type</FormLabel>
+                          <div className="space-y-2">
+                            <Select onValueChange={(value) => {
+                              if (value !== 'custom') {
+                                const selectedEvent = eventIcons.find(icon => icon.value === value);
+                                if (selectedEvent) {
+                                  field.onChange(selectedEvent.label);
+                                  form.setValue('icon', value);
+                                }
+                              } else {
+                                field.onChange('');
+                                form.setValue('icon', 'heart');
+                              }
+                            }}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select event type or choose custom" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {eventIcons.map((icon) => (
+                                  <SelectItem key={icon.value} value={icon.value}>
+                                    {icon.emoji} {icon.label}
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value="custom">
+                                  💕 Custom Event
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormControl>
+                              <Input 
+                                placeholder="Enter custom event name or modify selected" 
+                                {...field}
+                              />
+                            </FormControl>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -347,56 +378,30 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="icon"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Icon</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select icon" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {eventIcons.map((icon) => (
-                                  <SelectItem key={icon.value} value={icon.value}>
-                                    {icon.emoji} {icon.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="color"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Color</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select color" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {eventColors.map((color) => (
-                                  <SelectItem key={color.value} value={color.value}>
-                                    {color.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="color"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Color Theme</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select color theme" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {eventColors.map((color) => (
+                                <SelectItem key={color.value} value={color.value}>
+                                  {color.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="guestCount"
