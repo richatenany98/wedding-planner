@@ -49,6 +49,11 @@ export function GuestTable() {
   const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
   const queryClient = useQueryClient();
 
+  // Get wedding profile to use bride and groom names for sides
+  const { data: weddingProfile } = useQuery({
+    queryKey: ['/api/wedding-profile'],
+  });
+
   const { data: guests = [], isLoading: guestsLoading } = useQuery<Guest[]>({
     queryKey: ["/api/guests"],
   });
@@ -62,11 +67,11 @@ export function GuestTable() {
       queryClient.invalidateQueries({ queryKey: ["/api/guests"] });
       setIsAddDialogOpen(false);
       form.reset({
-        name: '',
-        email: '',
-        phone: '',
-        side: 'tenany',
-        rsvpStatus: 'confirmed',
+        name: "",
+        email: "",
+        phone: "",
+        side: getDefaultSide(),
+        rsvpStatus: "confirmed",
       });
     },
   });
@@ -91,13 +96,20 @@ export function GuestTable() {
     },
   });
 
+  // Get the bride's last name as default side (first side option)
+  const getDefaultSide = () => {
+    if (!weddingProfile) return "bride";
+    const brideLastName = weddingProfile.brideName.split(' ').pop()?.toLowerCase() || "bride";
+    return brideLastName;
+  };
+
   const form = useForm<GuestFormData>({
     resolver: zodResolver(guestFormSchema),
     defaultValues: {
       name: "",
       email: "",
       phone: "",
-      side: "tenany",
+      side: getDefaultSide(),
       rsvpStatus: "confirmed",
     },
   });
@@ -146,24 +158,28 @@ export function GuestTable() {
   };
 
   const getSideColor = (side: string) => {
-    const colors = {
-      tenany: "bg-blue-100 text-blue-800",
-      Tenany: "bg-blue-100 text-blue-800",
-      patel: "bg-green-100 text-green-800",
-      Patel: "bg-green-100 text-green-800",
-      friends: "bg-purple-100 text-purple-800",
-      Friends: "bg-purple-100 text-purple-800",
-    };
-    return colors[side as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    if (!weddingProfile) return "bg-gray-100 text-gray-800";
+    
+    const brideName = weddingProfile.brideName.split(' ').pop()?.toLowerCase();
+    const groomName = weddingProfile.groomName.split(' ').pop()?.toLowerCase();
+    
+    const sideKey = side.toLowerCase();
+    
+    if (sideKey === brideName || sideKey === 'bride') {
+      return "bg-pink-100 text-pink-800";
+    } else if (sideKey === groomName || sideKey === 'groom') {
+      return "bg-blue-100 text-blue-800";
+    } else if (sideKey === 'friends') {
+      return "bg-purple-100 text-purple-800";
+    }
+    
+    return "bg-gray-100 text-gray-800";
   };
 
   const getRsvpColor = (status: string) => {
     const colors = {
-      confirmed: "bg-green-100 text-green-800",
       Confirmed: "bg-green-100 text-green-800",
-      pending: "bg-yellow-100 text-yellow-800",
       Pending: "bg-yellow-100 text-yellow-800",
-      declined: "bg-red-100 text-red-800",
       Declined: "bg-red-100 text-red-800",
     };
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
@@ -184,11 +200,11 @@ export function GuestTable() {
               setIsAddDialogOpen(false);
               setEditingGuest(null);
               form.reset({
-                name: '',
-                email: '',
-                phone: '',
-                side: 'tenany',
-                rsvpStatus: 'confirmed',
+                name: "",
+                email: "",
+                phone: "",
+                side: getDefaultSide(),
+                rsvpStatus: "confirmed",
               });
             }
           }}
@@ -217,7 +233,11 @@ export function GuestTable() {
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter guest name" autoComplete="off" />
+                        <Input
+                          {...field}
+                          placeholder="Enter guest name"
+                          autoComplete="off"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -230,7 +250,11 @@ export function GuestTable() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter email address" autoComplete="off" />
+                        <Input
+                          {...field}
+                          placeholder="Enter email address"
+                          autoComplete="off"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -243,7 +267,11 @@ export function GuestTable() {
                     <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter phone number" autoComplete="off" />
+                        <Input
+                          {...field}
+                          placeholder="Enter phone number"
+                          autoComplete="off"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -265,8 +293,16 @@ export function GuestTable() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="tenany">Tenany</SelectItem>
-                          <SelectItem value="patel">Patel</SelectItem>
+                          {weddingProfile && (
+                            <>
+                              <SelectItem value={weddingProfile.brideName.split(' ').pop()?.toLowerCase() || 'bride'}>
+                                {weddingProfile.brideName.split(' ').pop()}'s Side
+                              </SelectItem>
+                              <SelectItem value={weddingProfile.groomName.split(' ').pop()?.toLowerCase() || 'groom'}>
+                                {weddingProfile.groomName.split(' ').pop()}'s Side
+                              </SelectItem>
+                            </>
+                          )}
                           <SelectItem value="friends">Friends</SelectItem>
                         </SelectContent>
                       </Select>

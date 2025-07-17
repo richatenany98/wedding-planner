@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,6 +23,11 @@ export function GuestImport() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isBulkAddDialogOpen, setIsBulkAddDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  // Get wedding profile to use bride and groom names for sides
+  const { data: weddingProfile } = useQuery({
+    queryKey: ['/api/wedding-profile'],
+  });
 
   const capitalizeWords = (str: string) => {
     return str.split(' ').map(word => 
@@ -62,10 +67,17 @@ export function GuestImport() {
     },
   });
 
+  // Get the bride's last name as default side
+  const getDefaultSide = () => {
+    if (!weddingProfile) return "bride";
+    const brideLastName = weddingProfile.brideName.split(' ').pop()?.toLowerCase() || "bride";
+    return brideLastName;
+  };
+
   const bulkForm = useForm<BulkAddFormData>({
     defaultValues: {
       guestList: '',
-      side: 'tenany',
+      side: getDefaultSide(),
       rsvpStatus: 'confirmed',
     },
   });
@@ -173,8 +185,16 @@ Amit Patel, amit@email.com, 9876543212`}
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="tenany">Tenany</SelectItem>
-                          <SelectItem value="patel">Patel</SelectItem>
+                          {weddingProfile && (
+                            <>
+                              <SelectItem value={weddingProfile.brideName.split(' ').pop()?.toLowerCase() || 'bride'}>
+                                {weddingProfile.brideName.split(' ').pop()}'s Side
+                              </SelectItem>
+                              <SelectItem value={weddingProfile.groomName.split(' ').pop()?.toLowerCase() || 'groom'}>
+                                {weddingProfile.groomName.split(' ').pop()}'s Side
+                              </SelectItem>
+                            </>
+                          )}
                           <SelectItem value="friends">Friends</SelectItem>
                         </SelectContent>
                       </Select>
