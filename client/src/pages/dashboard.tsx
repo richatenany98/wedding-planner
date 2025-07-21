@@ -68,7 +68,10 @@ const eventIcons = [
     emoji: "✨",
     color: "emerald",
   },
-  { value: "heart", label: "Custom Event", emoji: "💕", color: "amber" },
+  { value: "cake", label: "Wedding Cake Cutting", emoji: "🍰", color: "amber" },
+  { value: "camera", label: "Photography Session", emoji: "📸", color: "cyan" },
+  { value: "car", label: "Transportation", emoji: "🚗", color: "slate" },
+  { value: "gift", label: "Gift Exchange", emoji: "🎁", color: "violet" },
 ];
 
 const eventDescriptions = {
@@ -88,17 +91,53 @@ const eventDescriptions = {
   ring: "The main event — the traditional wedding ceremony, often filled with rituals, blessings, and symbolic moments. Could be an hour or several, depending on the traditions followed.",
   "champagne-glasses":
     "The after-party! The newlyweds are officially introduced, there are speeches, great food, dancing, and everyone's dressed to the nines. It's the last hurrah of the wedding week.",
+  cake: "A sweet moment where the newlyweds cut their wedding cake together, often followed by feeding each other the first slice. A beautiful photo opportunity and tradition.",
+  camera: "Dedicated time for professional photography and videography sessions. This could be couple portraits, family photos, or creative shots around the venue.",
+  car: "Transportation arrangements for guests, the wedding party, or special vehicles for the couple. This includes shuttles, limos, or traditional vehicles.",
+  gift: "A ceremony or moment for exchanging gifts between families, often including traditional items, jewelry, or symbolic presents that represent the union.",
 };
 
 // Helper function to get emoji from icon value
-const getEventEmoji = (iconValue: string) => {
+const getEventEmoji = (iconValue: string) => {  
+  if (iconValue && iconValue.length <= 2) {
+    return iconValue;
+  }
   const icon = eventIcons.find((icon) => icon.value === iconValue);
-  return icon ? icon.emoji : iconValue.startsWith("🎉") ? iconValue : "📅";
+  return icon ? icon.emoji : "📅";
 };
 
 // Helper function to get description suggestion
 const getEventSuggestion = (iconValue: string) => {
   return eventDescriptions[iconValue as keyof typeof eventDescriptions] || "";
+};
+
+// Helper function to get color class
+const getColorClass = (color: string) => {
+  const colorMap = {
+    red: 'wedding-gradient-red',
+    orange: 'wedding-gradient-orange',
+    yellow: 'wedding-gradient-yellow',
+    green: 'wedding-gradient-green',
+    blue: 'wedding-gradient-blue',
+    indigo: 'wedding-gradient-indigo',
+    purple: 'wedding-gradient-purple',
+    pink: 'wedding-gradient-pink',
+    rose: 'wedding-gradient-rose',
+    emerald: 'wedding-gradient-emerald',
+    amber: 'wedding-gradient-amber',
+    cyan: 'wedding-gradient-cyan',
+    slate: 'wedding-gradient-slate',
+    violet: 'wedding-gradient-violet',
+  };
+  return colorMap[color as keyof typeof colorMap] || 'wedding-gradient-gold';
+};
+
+// Helper function to get progress color
+const getProgressColor = (progress: number) => {
+  if (progress >= 80) return 'bg-green-600';
+  if (progress >= 60) return 'bg-yellow-600';
+  if (progress >= 40) return 'bg-primary';
+  return 'bg-red-600';
 };
 
 interface DashboardProps {
@@ -109,76 +148,9 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isCustomEventName, setIsCustomEventName] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const queryClient = useQueryClient();
-
-  const { data: events = [], isLoading } = useQuery<Event[]>({
-    queryKey: ["/api/events", weddingProfile.id],
-    queryFn: () =>
-      fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then((res) =>
-        res.json(),
-      ),
-    retry: false,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-
-  const createEventMutation = useMutation({
-    mutationFn: async (data: EventFormData) => {
-      const eventData = { ...data, weddingProfileId: weddingProfile.id };
-      const response = await apiRequest("POST", "/api/events", eventData);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/events", weddingProfile.id],
-      });
-      setIsAddDialogOpen(false);
-      form.reset({
-        name: "",
-        description: "",
-        date: getDefaultDate(),
-        time: "",
-        location: "",
-        icon: "",
-        color: "orange",
-        guestCount: weddingProfile.guestCount || 0,
-      });
-    },
-  });
-
-  const updateEventMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Event> }) => {
-      const response = await apiRequest("PUT", `/api/events/${id}`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/events", weddingProfile.id],
-      });
-      setEditingEvent(null);
-      form.reset({
-        name: "",
-        description: "",
-        date: getDefaultDate(),
-        time: "",
-        location: "",
-        icon: "",
-        color: "orange",
-        guestCount: weddingProfile.guestCount || 0,
-      });
-    },
-  });
-
-  const deleteEventMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/events/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/events", weddingProfile.id],
-      });
-    },
-  });
 
   // Get default date within wedding timeframe
   const getDefaultDate = () => {
@@ -222,6 +194,82 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     }
   }, [selectedIcon, form]);
 
+
+
+  const { data: events = [], isLoading } = useQuery<Event[]>({
+    queryKey: ["/api/events", weddingProfile.id],
+    queryFn: () =>
+      fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      }),
+    retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const createEventMutation = useMutation({
+    mutationFn: async (data: EventFormData) => {
+      const eventData = { ...data, weddingProfileId: weddingProfile.id };
+      const response = await apiRequest("POST", "/api/events", eventData);
+      return response.json();
+    },
+          onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/events", weddingProfile.id],
+        });
+        setIsAddDialogOpen(false);
+        setIsCustomEventName(false);
+        form.reset({
+          name: "",
+          description: "",
+          date: getDefaultDate(),
+          time: "",
+          location: "",
+          icon: "",
+          color: "orange",
+          guestCount: weddingProfile.guestCount || 0,
+        });
+      },
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Event> }) => {
+      const response = await apiRequest("PUT", `/api/events/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/events", weddingProfile.id],
+      });
+      setEditingEvent(null);
+      setIsCustomEventName(false);
+      form.reset({
+        name: "",
+        description: "",
+        date: getDefaultDate(),
+        time: "",
+        location: "",
+        icon: "",
+        color: "orange",
+        guestCount: weddingProfile.guestCount || 0,
+      });
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/events/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/events", weddingProfile.id],
+      });
+    },
+  });
+
   const onSubmit = (data: EventFormData) => {
     console.log("Form data:", data);
     if (editingEvent) {
@@ -233,6 +281,9 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
 
   const handleEdit = (event: Event) => {
     setEditingEvent(event);
+    // Check if the event name matches any predefined event
+    const predefinedEvent = eventIcons.find(icon => icon.label === event.name);
+    setIsCustomEventName(!predefinedEvent);
     form.reset({
       name: event.name,
       description: event.description || "",
@@ -245,115 +296,359 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     });
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this event?")) {
-      deleteEventMutation.mutate(id);
+  const handleDelete = (event: Event) => {
+    setEventToDelete(event);
+  };
+
+  const confirmDelete = () => {
+    if (eventToDelete) {
+      deleteEventMutation.mutate(eventToDelete.id);
+      setEventToDelete(null);
     }
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">Loading events...</div>;
-  }
-
-  if (!events || events.length === 0) {
     return (
-      <div className="min-h-screen bg-neutral-50">
-        <header className="bg-white shadow-sm border-b border-neutral-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-neutral-800">
-                Wedding Dashboard
-              </h2>
-              <p className="text-neutral-600">
-                {weddingProfile.brideName} & {weddingProfile.groomName} •{" "}
-                {weddingProfile.weddingStartDate} -{" "}
-                {weddingProfile.weddingEndDate}
-              </p>
-            </div>
-          </div>
-        </header>
-
-        <div className="p-6">
-          <Card className="p-8 text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
-              Welcome to Your Wedding Dashboard!
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Your wedding events are being set up. Once configured, you'll see
-              all your events here.
-            </p>
-            <div className="text-sm text-gray-500">
-              Wedding Date: {weddingProfile.weddingStartDate} -{" "}
-              {weddingProfile.weddingEndDate}
-            </div>
-          </Card>
+      <div className="container-wedding p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="loading-spinner h-12 w-12"></div>
         </div>
       </div>
     );
   }
 
+  // Ensure events is always an array and sort chronologically
+  const sortedEvents = [...(Array.isArray(events) ? events : [])].sort((a, b) => {
+    // First sort by date
+    const dateA = new Date(a.date + "T00:00:00").getTime();
+    const dateB = new Date(b.date + "T00:00:00").getTime();
+
+    if (dateA !== dateB) {
+      return dateA - dateB;
+    }
+
+    // If dates are the same, sort by time
+    const parseTime = (timeStr: string) => {
+      // Extract first time from strings like "11AM - 1PM" or "6:00 PM - 11:30 PM"
+      const match = timeStr.match(
+        /(\d{1,2}):?(\d{0,2})\s*(AM|PM)/i,
+      );
+      if (match) {
+        let hours = parseInt(match[1]);
+        const minutes = parseInt(match[2] || "0");
+        const ampm = match[3].toUpperCase();
+
+        if (ampm === "PM" && hours !== 12) hours += 12;
+        if (ampm === "AM" && hours === 12) hours = 0;
+
+        return hours * 60 + minutes; // Convert to minutes for comparison
+      }
+      return 0;
+    };
+
+    return parseTime(a.time) - parseTime(b.time);
+  });
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-neutral-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-neutral-800">
-              Wedding Dashboard
-            </h2>
-            <p className="text-neutral-600">
-              {weddingProfile.brideName} & {weddingProfile.groomName} •{" "}
-              {weddingProfile.weddingStartDate} -{" "}
-              {weddingProfile.weddingEndDate}
-            </p>
+    <div className="min-h-screen p-6 lg:p-8">
+      {/* Enhanced Header */}
+      <div className="mb-8">
+        <div className="wedding-card p-8 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                Wedding Timeline
+              </h1>
+              <p className="text-lg text-neutral-600 mb-4">
+                Your magical celebration schedule
+              </p>
+              <div className="flex flex-wrap gap-4 text-sm text-neutral-500">
+                <div className="flex items-center space-x-2">
+                  <CalendarDays className="w-4 h-4 text-rose-500" />
+                  <span>{weddingProfile.weddingStartDate} - {weddingProfile.weddingEndDate}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-pink-500" />
+                  <span>{weddingProfile.city}, {weddingProfile.state}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-purple-500" />
+                  <span>{weddingProfile.guestCount || 0} Guests</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 lg:mt-0">
+              <Button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="btn-wedding-primary"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Event
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Dialog
-              open={isAddDialogOpen || !!editingEvent}
-              onOpenChange={(open) => {
-                if (!open) {
-                  setIsAddDialogOpen(false);
-                  setEditingEvent(null);
-                  form.reset({
-                    name: "",
-                    description: "",
-                    date: getDefaultDate(),
-                    time: "",
-                    location: "",
-                    icon: "",
-                    color: "orange",
-                    guestCount: weddingProfile.guestCount || 0,
-                  });
-                }
-              }}
+        </div>
+      </div>
+
+      {/* Timeline View */}
+      <div className="wedding-card p-8">
+        <div className="flex items-center space-x-3 mb-8">
+          <div className="w-12 h-12 wedding-gradient-rose rounded-xl flex items-center justify-center">
+            <CalendarDays className="text-white" size={24} />
+          </div>
+          <h2 className="text-2xl font-bold text-neutral-800">Event Schedule</h2>
+        </div>
+
+        {sortedEvents.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 wedding-gradient-rose rounded-full flex items-center justify-center mx-auto mb-6">
+              <CalendarDays className="text-white" size={32} />
+            </div>
+            <h3 className="text-xl font-semibold text-neutral-700 mb-2">No events scheduled yet</h3>
+            <p className="text-neutral-600 mb-6">Start building your wedding timeline by adding your first event.</p>
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              className="btn-wedding-primary"
             >
-              <DialogTrigger asChild>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Event
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Event
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {sortedEvents.map((event, index) => (
+              <div
+                key={event.id}
+                className="relative group cursor-pointer"
+                onClick={() => setSelectedEvent(event)}
+              >
+                {/* Timeline connector */}
+                {index < sortedEvents.length - 1 && (
+                  <div className="absolute left-6 top-16 w-0.5 h-8 bg-gradient-to-b from-rose-200 to-pink-200"></div>
+                )}
+                
+                <div className="wedding-card hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]">
+                  <div className="p-6">
+                    <div className="flex items-start space-x-4">
+                      {/* Date/Time Column */}
+                      <div className="flex-shrink-0 w-24 text-center">
+                        <div className="w-12 h-12 wedding-gradient-rose rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                          <span className="text-white font-bold text-lg">
+                            {new Date(event.date + "T00:00:00").getDate()}
+                          </span>
+                        </div>
+                        <div className="text-sm font-semibold text-neutral-700">
+                          {new Date(event.date + "T00:00:00").toLocaleDateString("en-US", {
+                            month: "short",
+                          })}
+                        </div>
+                        <div className="text-xs text-neutral-500 font-medium">
+                          {new Date(event.date + "T00:00:00").toLocaleDateString("en-US", {
+                            weekday: "short",
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Event Icon */}
+                      <div className="flex-shrink-0 flex flex-col items-center">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg`}>
+                          <span className="text-white text-lg">
+                            {getEventEmoji(event.icon)}
+                          </span>
+                        </div>
+                        {index < sortedEvents.length - 1 && (
+                          <div className="w-0.5 h-8 bg-gradient-to-b from-rose-200 to-pink-200 mt-2"></div>
+                        )}
+                      </div>
+
+                      {/* Event Details */}
+                      <div className="flex-grow">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex-grow">
+                            <h3 className="font-bold text-neutral-800 text-xl mb-1">
+                              {event.name}
+                            </h3>
+                            <p className="text-neutral-600 mb-3 line-clamp-2">
+                              {event.description}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(event);
+                              }}
+                              className="h-8 w-8 p-0 hover:bg-white/20"
+                            >
+                              <Edit className="h-4 w-4 text-neutral-600" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(event);
+                              }}
+                              className="h-8 w-8 p-0 hover:bg-red-100"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
+                              <Clock className="w-4 h-4 text-rose-600" />
+                            </div>
+                            <span className="font-medium text-neutral-700">{event.time}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
+                              <MapPin className="w-4 h-4 text-pink-600" />
+                            </div>
+                            <span className="font-medium text-neutral-700">{event.location}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <Users className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <span className="font-medium text-neutral-700">{event.guestCount} guests</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Event Details Drawer */}
+      {selectedEvent && (
+        <Dialog
+          open={!!selectedEvent}
+          onOpenChange={() => setSelectedEvent(null)}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selectedEvent.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">Date & Time</h4>
+                  <p className="text-sm text-gray-600">
+                    {new Date(selectedEvent.date).toLocaleDateString(
+                      "en-US",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {selectedEvent.time}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Location</h4>
+                  <p className="text-sm text-gray-600">
+                    {selectedEvent.location}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Guest Count</h4>
+                <p className="text-sm text-gray-600">
+                  {selectedEvent.guestCount} guests expected
+                </p>
+              </div>
+              {selectedEvent.description && (
+                <div>
+                  <h4 className="font-medium mb-2">Description</h4>
+                  <p className="text-sm text-gray-600">
+                    {selectedEvent.description}
+                  </p>
+                </div>
+              )}
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedEvent(null);
+                    handleEdit(selectedEvent);
+                  }}
+                >
+                  Edit Event
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingEvent ? "Edit Event" : "Add New Event"}
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Event Name</FormLabel>
-                          <div className="relative">
-                            <Select
-                              onValueChange={(value) => {
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setSelectedEvent(null);
+                    handleDelete(selectedEvent);
+                  }}
+                >
+                  Delete Event
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Add/Edit Event Dialog */}
+      <Dialog
+        open={isAddDialogOpen || !!editingEvent}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsAddDialogOpen(false);
+            setEditingEvent(null);
+            setIsCustomEventName(false);
+            form.reset({
+              name: "",
+              description: "",
+              date: getDefaultDate(),
+              time: "",
+              location: "",
+              icon: "",
+              color: "orange",
+              guestCount: weddingProfile.guestCount || 0,
+            });
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl glass-morphism border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+              {editingEvent ? "Edit Event" : "Add New Event"}
+            </DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold text-neutral-700">Event Name</FormLabel>
+                    <div className="space-y-3">
+                      {!isCustomEventName ? (
+                        <>
+                          <Select
+                            onValueChange={(value) => {
+                              if (value === "custom") {
+                                setIsCustomEventName(true);
+                                field.onChange("");
+                                form.setValue("icon", "heart");
+                                form.setValue("color", "amber");
+                              } else {
                                 const selectedEvent = eventIcons.find(
                                   (icon) => icon.value === value,
                                 );
@@ -362,416 +657,286 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                                   form.setValue("icon", value);
                                   form.setValue("color", selectedEvent.color);
                                   // Only auto-populate description if it's currently empty
-                                  const currentDescription =
-                                    form.getValues("description");
+                                  const currentDescription = form.getValues("description") || "";
                                   if (!currentDescription.trim()) {
-                                    const suggestion =
-                                      getEventSuggestion(value);
+                                    const suggestion = getEventSuggestion(value);
                                     if (suggestion) {
                                       form.setValue("description", suggestion);
                                     }
                                   }
                                 }
-                              }}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="absolute right-0 top-0 w-10 h-full border-0 bg-transparent">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
+                              }
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full wedding-input">
+                                <SelectValue placeholder="Select an event type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="glass-morphism border-white/20 max-h-60 w-[var(--radix-select-trigger-width)]">
+                              <div className="p-2">
+                                <div className="text-sm font-medium text-neutral-600 mb-2 px-2">Popular Event Types</div>
                                 {eventIcons.map((icon) => (
-                                  <SelectItem
-                                    key={icon.value}
-                                    value={icon.value}
-                                  >
-                                    {icon.emoji} {icon.label}
+                                  <SelectItem key={icon.value} value={icon.value} className="py-2">
+                                    <div className="flex items-center space-x-3">
+                                      <span className="text-lg">{icon.emoji}</span>
+                                      <div className="flex-1">
+                                        <div className="font-medium">{icon.label}</div>
+                                        <div className="text-xs text-neutral-500 line-clamp-1">
+                                          {getEventSuggestion(icon.value)}
+                                        </div>
+                                      </div>
+                                    </div>
                                   </SelectItem>
                                 ))}
-                              </SelectContent>
-                            </Select>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter event name or select from dropdown"
-                                {...field}
-                                className="pr-12"
-                              />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          {selectedIcon &&
-                            getEventSuggestion(selectedIcon) &&
-                            !form.getValues("description").trim() && (
-                              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md mb-2">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <strong>Suggestion:</strong>{" "}
-                                    {getEventSuggestion(selectedIcon)}
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="ml-2 h-6 px-2 text-xs"
-                                    onClick={() =>
-                                      form.setValue(
-                                        "description",
-                                        getEventSuggestion(selectedIcon),
-                                      )
-                                    }
-                                  >
-                                    Use
-                                  </Button>
+                                <div className="border-t border-neutral-200 mt-2 pt-2">
+                                  <SelectItem value="custom" className="py-2">
+                                    <div className="flex items-center space-x-3">
+                                      <span className="text-lg">✏️</span>
+                                      <div className="flex-1">
+                                        <div className="font-medium">Custom Event</div>
+                                        <div className="text-xs text-neutral-500">
+                                          Enter your own event name
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </SelectItem>
                                 </div>
                               </div>
-                            )}
-                          <FormControl>
-                            <Textarea
-                              placeholder="Enter event description"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="time"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Time</FormLabel>
+                            </SelectContent>
+                          </Select>
+                          <div className="text-xs text-neutral-500">
+                            💡 Select from popular event types or choose "Custom Event" to enter your own
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center space-x-2">
                             <FormControl>
                               <Input
-                                placeholder="e.g., 10:00 AM - 12:00 PM"
+                                placeholder="Enter custom event name"
                                 {...field}
+                                className="wedding-input flex-1"
                               />
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Location</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter event location"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setIsCustomEventName(false);
+                                field.onChange("");
+                                form.setValue("icon", "");
+                                form.setValue("color", "orange");
+                              }}
+                              className="whitespace-nowrap"
+                            >
+                              Back to List
+                            </Button>
+                          </div>
+                          <div className="text-xs text-neutral-500">
+                            ✏️ Enter your custom event name
+                          </div>
+                        </>
                       )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="guestCount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expected Guest Count</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Enter number of guests"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseInt(e.target.value) || 0)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setIsAddDialogOpen(false);
-                          setEditingEvent(null);
-                          form.reset({
-                            name: "",
-                            description: "",
-                            date: getDefaultDate(),
-                            time: "",
-                            location: "",
-                            icon: "",
-                            color: "orange",
-                            guestCount: weddingProfile.guestCount || 0,
-                          });
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit">
-                        {editingEvent ? "Update" : "Add"} Event
-                      </Button>
                     </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="p-6">
-        {/* Timeline View */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="w-5 h-5" />
-              Wedding Timeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {Array.isArray(events) && events.length === 0 ? (
-              <div className="text-center py-8">
-                <CalendarDays className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">No events scheduled yet</p>
-                <p className="text-sm text-gray-400">
-                  Add your first event to start planning your wedding timeline
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {Array.isArray(events) &&
-                  events
-                    .sort((a, b) => {
-                      // First sort by date
-                      const dateA = new Date(a.date + "T00:00:00").getTime();
-                      const dateB = new Date(b.date + "T00:00:00").getTime();
-
-                      if (dateA !== dateB) {
-                        return dateA - dateB;
-                      }
-
-                      // If dates are the same, sort by time
-                      const parseTime = (timeStr: string) => {
-                        // Extract first time from strings like "11AM - 1PM" or "6:00 PM - 11:30 PM"
-                        const match = timeStr.match(
-                          /(\d{1,2}):?(\d{0,2})\s*(AM|PM)/i,
-                        );
-                        if (match) {
-                          let hours = parseInt(match[1]);
-                          const minutes = parseInt(match[2] || "0");
-                          const ampm = match[3].toUpperCase();
-
-                          if (ampm === "PM" && hours !== 12) hours += 12;
-                          if (ampm === "AM" && hours === 12) hours = 0;
-
-                          return hours * 60 + minutes; // Convert to minutes for comparison
-                        }
-                        return 0;
-                      };
-
-                      return parseTime(a.time) - parseTime(b.time);
-                    })
-                    .map((event, index) => (
-                      <div
-                        key={event.id}
-                        className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-100"
-                        onClick={() => setSelectedEvent(event)}
-                      >
-                        <div className="flex-shrink-0 w-24 text-center">
-                          <div className="text-lg font-bold text-gray-900">
-                            {new Date(
-                              event.date + "T00:00:00",
-                            ).toLocaleDateString("en-US", {
-                              day: "numeric",
-                            })}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold text-neutral-700">Description</FormLabel>
+                    {selectedIcon && getEventSuggestion(selectedIcon) && !(form.getValues("description") || "").trim() && (
+                      <div className="text-sm text-neutral-600 bg-rose-50 p-3 rounded-lg mb-2 border border-rose-200">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <strong>Suggestion:</strong> {getEventSuggestion(selectedIcon)}
                           </div>
-                          <div className="text-sm font-medium text-gray-700">
-                            {new Date(
-                              event.date + "T00:00:00",
-                            ).toLocaleDateString("en-US", {
-                              month: "short",
-                            })}
-                          </div>
-                          <div className="text-xs text-gray-500 font-medium">
-                            {new Date(
-                              event.date + "T00:00:00",
-                            ).toLocaleDateString("en-US", {
-                              weekday: "long",
-                            })}
-                          </div>
-                        </div>
-                        <div className="flex-shrink-0 flex flex-col items-center">
-                          <div
-                            className={`w-4 h-4 rounded-full bg-${event.color}-500 shadow-sm`}
-                          />
-                          {index < events.length - 1 && (
-                            <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
-                          )}
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-grow">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className="text-xl w-6 h-6 flex items-center justify-center flex-shrink-0">
-                                  {getEventEmoji(event.icon)}
-                                </span>
-                                <h3 className="font-semibold text-gray-900 text-lg">
-                                  {event.name}
-                                </h3>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {event.description}
-                              </p>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-500">
-                                <span className="flex items-center">
-                                  <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
-                                  {event.time}
-                                </span>
-                                <span className="flex items-center">
-                                  <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                                  {event.location}
-                                </span>
-                                <span className="flex items-center">
-                                  <Users className="w-4 h-4 mr-2 flex-shrink-0" />
-                                  {event.guestCount} guests
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-1 ml-4">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEdit(event);
-                                }}
-                              >
-                                <Edit className="w-4 h-4 flex-shrink-0" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(event.id);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4 flex-shrink-0" />
-                              </Button>
-                            </div>
-                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="ml-2 h-6 px-2 text-xs"
+                            onClick={() => form.setValue("description", getEventSuggestion(selectedIcon))}
+                          >
+                            Use
+                          </Button>
                         </div>
                       </div>
-                    ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Event Details Drawer */}
-        {selectedEvent && (
-          <Dialog
-            open={!!selectedEvent}
-            onOpenChange={() => setSelectedEvent(null)}
-          >
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>{selectedEvent.name}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Date & Time</h4>
-                    <p className="text-sm text-gray-600">
-                      {new Date(selectedEvent.date).toLocaleDateString(
-                        "en-US",
-                        {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        },
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {selectedEvent.time}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Location</h4>
-                    <p className="text-sm text-gray-600">
-                      {selectedEvent.location}
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Guest Count</h4>
-                  <p className="text-sm text-gray-600">
-                    {selectedEvent.guestCount} guests expected
-                  </p>
-                </div>
-                {selectedEvent.description && (
-                  <div>
-                    <h4 className="font-medium mb-2">Description</h4>
-                    <p className="text-sm text-gray-600">
-                      {selectedEvent.description}
-                    </p>
-                  </div>
+                    )}
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter event description"
+                        {...field}
+                        value={field.value || ""}
+                        className="wedding-input min-h-[100px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedEvent(null);
-                      handleEdit(selectedEvent);
-                    }}
-                  >
-                    Edit Event
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setSelectedEvent(null);
-                      handleDelete(selectedEvent.id);
-                    }}
-                  >
-                    Delete Event
-                  </Button>
-                </div>
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-neutral-700">Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} className="wedding-input" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-neutral-700">Time</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., 10:00 AM - 12:00 PM"
+                          {...field}
+                          className="wedding-input"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+              
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold text-neutral-700">Location</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter event location"
+                        {...field}
+                        className="wedding-input"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="guestCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold text-neutral-700">Expected Guest Count</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Enter number of guests"
+                        {...field}
+                        value={field.value || 0}
+                        className="wedding-input"
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsAddDialogOpen(false);
+                    setEditingEvent(null);
+                    setIsCustomEventName(false);
+                    form.reset({
+                      name: "",
+                      description: "",
+                      date: getDefaultDate(),
+                      time: "",
+                      location: "",
+                      icon: "",
+                      color: "orange",
+                      guestCount: weddingProfile.guestCount || 0,
+                    });
+                  }}
+                  className="hover:bg-white/20"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="btn-wedding-primary">
+                  {editingEvent ? "Update" : "Add"} Event
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog
+        open={!!eventToDelete}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEventToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md glass-morphism border-white/20">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-600">
+              Delete Event
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg`}>
+                <span className="text-white text-lg">
+                  {eventToDelete ? getEventEmoji(eventToDelete.icon) : "📅"}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-800">{eventToDelete?.name}</h3>
+                <p className="text-sm text-neutral-600">
+                  {eventToDelete?.date} • {eventToDelete?.time}
+                </p>
+              </div>
+            </div>
+            <p className="text-neutral-600">
+              Are you sure you want to delete this event? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setEventToDelete(null)}
+                className="hover:bg-white/20"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete Event
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

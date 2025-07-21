@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { Upload, Plus, X } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { Guest, WeddingProfile } from '@shared/schema';
 import { z } from 'zod';
 
 const bulkAddFormSchema = z.object({
@@ -25,7 +26,7 @@ export function GuestImport() {
   const queryClient = useQueryClient();
 
   // Get wedding profile to use bride and groom names for sides
-  const { data: weddingProfile } = useQuery({
+  const { data: weddingProfile } = useQuery<WeddingProfile>({
     queryKey: ['/api/wedding-profile'],
   });
 
@@ -37,6 +38,10 @@ export function GuestImport() {
 
   const bulkAddMutation = useMutation({
     mutationFn: async (data: BulkAddFormData) => {
+      if (!weddingProfile) {
+        throw new Error('Wedding profile not found');
+      }
+
       const lines = data.guestList.split('\n').filter(line => line.trim());
       const guests = lines.map(line => {
         const parts = line.split(',');
@@ -50,6 +55,7 @@ export function GuestImport() {
           phone: phone || undefined,
           side: data.side.charAt(0).toUpperCase() + data.side.slice(1).toLowerCase(),
           rsvpStatus: data.rsvpStatus.charAt(0).toUpperCase() + data.rsvpStatus.slice(1).toLowerCase(),
+          weddingProfileId: weddingProfile.id,
         };
       });
 
@@ -69,8 +75,8 @@ export function GuestImport() {
 
   // Get the bride's last name as default side
   const getDefaultSide = () => {
-    if (!weddingProfile) return "bride";
-    const brideLastName = weddingProfile.brideName.split(' ').pop()?.toLowerCase() || "bride";
+    if (!weddingProfile) return "";
+    const brideLastName = weddingProfile.brideName.split(' ').pop() || "";
     return brideLastName;
   };
 
@@ -178,7 +184,7 @@ Amit Patel, amit@email.com, 9876543212`}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Side</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || undefined}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select side" />
@@ -187,15 +193,15 @@ Amit Patel, amit@email.com, 9876543212`}
                         <SelectContent>
                           {weddingProfile && (
                             <>
-                              <SelectItem value={weddingProfile.brideName.split(' ').pop()?.toLowerCase() || 'bride'}>
-                                {weddingProfile.brideName.split(' ').pop()}'s Side
+                              <SelectItem value={weddingProfile.brideName.split(' ').pop() || ""}>
+                                {weddingProfile.brideName.split(' ').pop()}
                               </SelectItem>
-                              <SelectItem value={weddingProfile.groomName.split(' ').pop()?.toLowerCase() || 'groom'}>
-                                {weddingProfile.groomName.split(' ').pop()}'s Side
+                              <SelectItem value={weddingProfile.groomName.split(' ').pop() || ""}>
+                                {weddingProfile.groomName.split(' ').pop()}
                               </SelectItem>
                             </>
                           )}
-                          <SelectItem value="friends">Friends</SelectItem>
+                          <SelectItem value="Friends">Friends</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -208,7 +214,7 @@ Amit Patel, amit@email.com, 9876543212`}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>RSVP Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || undefined}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select RSVP status" />
@@ -230,7 +236,7 @@ Amit Patel, amit@email.com, 9876543212`}
                   Cancel
                 </Button>
                 <Button type="submit" disabled={bulkAddMutation.isPending}>
-                  {bulkAddMutation.isPending ? 'Adding...' : 'Add Guests'}
+                  Add Guests
                 </Button>
               </div>
             </form>

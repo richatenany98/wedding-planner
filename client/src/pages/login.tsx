@@ -88,26 +88,34 @@ export default function Login({ onLogin }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 opacity-50" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f9a8d4' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      }}></div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-32 h-32 wedding-gradient-rose rounded-full opacity-20 animate-float"></div>
+        <div className="absolute top-40 right-32 w-24 h-24 wedding-gradient-pink rounded-full opacity-15 animate-float" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-32 left-32 w-28 h-28 wedding-gradient-gold rounded-full opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 right-20 w-20 h-20 wedding-gradient-purple rounded-full opacity-20 animate-float" style={{ animationDelay: '0.5s' }}></div>
+      </div>
       
-      <Card className="w-full max-w-md shadow-2xl bg-white/80 backdrop-blur-sm border-0">
+      <Card className="w-full max-w-md glass-morphism border-white/20 shadow-2xl">
         <CardHeader className="text-center pb-8">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-6">
             <div className="relative">
-              <Heart className="text-rose-500 w-12 h-12" fill="currentColor" />
-              <Sparkles className="absolute -top-2 -right-2 text-pink-400 w-6 h-6" fill="currentColor" />
+              <div className="w-16 h-16 wedding-gradient-rose rounded-2xl flex items-center justify-center shadow-lg">
+                <Heart className="text-white w-8 h-8" fill="currentColor" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 wedding-gradient-gold rounded-full flex items-center justify-center">
+                <Sparkles className="text-white w-3 h-3" fill="currentColor" />
+              </div>
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
-            {isRegistering ? 'Create Account' : 'Welcome Back'}
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            WeddingWizard
           </CardTitle>
           <CardDescription className="text-lg text-neutral-600">
             {isRegistering 
-              ? 'Start planning your dream Indian wedding' 
-              : 'Continue planning your beautiful wedding'
+              ? 'Start planning your dream wedding' 
+              : 'Welcome back to your magical journey'
             }
           </CardDescription>
         </CardHeader>
@@ -122,11 +130,11 @@ export default function Login({ onLogin }: LoginProps) {
           {isRegistering ? (
             <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-700">Full Name</label>
+                <label className="text-sm font-semibold text-neutral-700">Full Name</label>
                 <input
                   type="text"
                   placeholder="Enter your full name"
-                  className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="wedding-input"
                   {...registerForm.register('name')}
                 />
                 {registerForm.formState.errors.name && (
@@ -135,11 +143,11 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-700">Username</label>
+                <label className="text-sm font-semibold text-neutral-700">Username</label>
                 <input
                   type="text"
                   placeholder="Choose a username"
-                  className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="wedding-input"
                   {...registerForm.register('username')}
                 />
                 {registerForm.formState.errors.username && (
@@ -148,11 +156,11 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-700">Password</label>
+                <label className="text-sm font-semibold text-neutral-700">Password</label>
                 <input
                   type="password"
                   placeholder="Create a password"
-                  className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="wedding-input"
                   {...registerForm.register('password')}
                 />
                 {registerForm.formState.errors.password && (
@@ -161,11 +169,11 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-700">Confirm Password</label>
+                <label className="text-sm font-semibold text-neutral-700">Confirm Password</label>
                 <input
                   type="password"
                   placeholder="Confirm your password"
-                  className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="wedding-input"
                   {...registerForm.register('confirmPassword')}
                 />
                 {registerForm.formState.errors.confirmPassword && (
@@ -175,7 +183,7 @@ export default function Login({ onLogin }: LoginProps) {
               
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold py-3 text-lg"
+                className="btn-wedding-primary w-full text-lg py-3"
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -184,11 +192,11 @@ export default function Login({ onLogin }: LoginProps) {
           ) : (
             <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-700">Username</label>
+                <label className="text-sm font-semibold text-neutral-700">Username</label>
                 <input
                   type="text"
                   placeholder="Enter your username"
-                  className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="wedding-input"
                   {...loginForm.register('username')}
                 />
                 {loginForm.formState.errors.username && (
@@ -197,11 +205,11 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-700">Password</label>
+                <label className="text-sm font-semibold text-neutral-700">Password</label>
                 <input
                   type="password"
                   placeholder="Enter your password"
-                  className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="wedding-input"
                   {...loginForm.register('password')}
                 />
                 {loginForm.formState.errors.password && (
@@ -211,7 +219,7 @@ export default function Login({ onLogin }: LoginProps) {
               
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold py-3 text-lg"
+                className="btn-wedding-primary w-full text-lg py-3"
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing In...' : 'Sign In'}

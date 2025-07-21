@@ -50,6 +50,7 @@ async function seed() {
         guestCount: 30,
         icon: 'flower',
         color: 'orange',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Haldi Ceremony',
@@ -61,6 +62,7 @@ async function seed() {
         guestCount: 40,
         icon: 'sun',
         color: 'yellow',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Sangeet Night',
@@ -74,6 +76,7 @@ async function seed() {
         guestCount: 200,
         icon: 'music',
         color: 'purple',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Wedding Ceremony',
@@ -87,6 +90,7 @@ async function seed() {
         guestCount: 350,
         icon: 'ring',
         color: 'red',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Reception',
@@ -100,6 +104,7 @@ async function seed() {
         guestCount: 500,
         icon: 'champagne-glasses',
         color: 'indigo',
+        weddingProfileId: weddingProfile[0].id,
       },
     ];
 
@@ -111,41 +116,41 @@ async function seed() {
         name: 'Rahul Kumar',
         email: 'rahul@email.com',
         phone: '9876543210',
-        relation: 'Friend',
-        eventIds: ['1', '2', '3', '4', '5'],
+        side: 'Friend',
         rsvpStatus: 'confirmed',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Priya Sharma',
         email: 'priya@email.com',
         phone: '9876543211',
-        relation: 'Family',
-        eventIds: ['1', '2', '3', '4', '5'],
+        side: 'Family',
         rsvpStatus: 'pending',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Amit Patel',
         email: 'amit@email.com',
         phone: '9876543212',
-        relation: 'Colleague',
-        eventIds: ['3', '4', '5'],
+        side: 'Colleague',
         rsvpStatus: 'confirmed',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Neha Gupta',
         email: 'neha@email.com',
         phone: '9876543213',
-        relation: 'Family',
-        eventIds: ['1', '2', '3', '4', '5'],
+        side: 'Family',
         rsvpStatus: 'confirmed',
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         name: 'Arjun Singh',
         email: 'arjun@email.com',
         phone: '9876543214',
-        relation: 'Friend',
-        eventIds: ['3', '4', '5'],
+        side: 'Friend',
         rsvpStatus: 'pending',
+        weddingProfileId: weddingProfile[0].id,
       },
     ];
 
@@ -161,6 +166,7 @@ async function seed() {
         assignedTo: 'bride',
         dueDate: '2024-11-15',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         title: 'Choose wedding photographer',
@@ -170,6 +176,7 @@ async function seed() {
         assignedTo: 'groom',
         dueDate: '2024-11-20',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         title: 'Send invitations',
@@ -179,6 +186,7 @@ async function seed() {
         assignedTo: 'bride',
         dueDate: '2024-11-30',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         title: 'Choose mandap design',
@@ -188,6 +196,7 @@ async function seed() {
         assignedTo: 'bride',
         dueDate: '2024-12-01',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         title: 'Book catering service',
@@ -197,6 +206,7 @@ async function seed() {
         assignedTo: 'groom',
         dueDate: '2024-11-25',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
     ];
 
@@ -213,6 +223,7 @@ async function seed() {
         paidAmount: 50000,
         status: 'partial',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         category: 'photography',
@@ -223,6 +234,7 @@ async function seed() {
         paidAmount: 80000,
         status: 'paid',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         category: 'catering',
@@ -233,6 +245,7 @@ async function seed() {
         paidAmount: null,
         status: 'pending',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         category: 'attire',
@@ -243,6 +256,7 @@ async function seed() {
         paidAmount: 95000,
         status: 'paid',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         category: 'flowers',
@@ -253,6 +267,7 @@ async function seed() {
         paidAmount: null,
         status: 'pending',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
       {
         category: 'music',
@@ -263,6 +278,7 @@ async function seed() {
         paidAmount: 17500,
         status: 'partial',
         eventId: null,
+        weddingProfileId: weddingProfile[0].id,
       },
     ];
 

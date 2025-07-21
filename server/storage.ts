@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { users, events, guests, tasks, budgetItems, vendors, weddingProfiles, type User, type InsertUser, type WeddingProfile, type InsertWeddingProfile, type Event, type InsertEvent, type Guest, type InsertGuest, type Task, type InsertTask, type BudgetItem, type InsertBudgetItem, type Vendor, type InsertVendor } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -11,39 +12,40 @@ export interface IStorage {
   
   // Wedding Profile methods
   getWeddingProfile(id: number): Promise<WeddingProfile | undefined>;
+  getWeddingProfiles(): Promise<WeddingProfile[]>;
   createWeddingProfile(profile: InsertWeddingProfile): Promise<WeddingProfile>;
   updateWeddingProfile(id: number, profile: Partial<WeddingProfile>): Promise<WeddingProfile | undefined>;
   
   // Event methods
-  getEvents(): Promise<Event[]>;
+  getEvents(weddingProfileId?: number): Promise<Event[]>;
   getEvent(id: number): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: Partial<Event>): Promise<Event | undefined>;
   deleteEvent(id: number): Promise<boolean>;
   
   // Guest methods
-  getGuests(): Promise<Guest[]>;
+  getGuests(weddingProfileId?: number): Promise<Guest[]>;
   getGuest(id: number): Promise<Guest | undefined>;
   createGuest(guest: InsertGuest): Promise<Guest>;
   updateGuest(id: number, guest: Partial<Guest>): Promise<Guest | undefined>;
   deleteGuest(id: number): Promise<boolean>;
   
   // Task methods
-  getTasks(): Promise<Task[]>;
+  getTasks(weddingProfileId?: number): Promise<Task[]>;
   getTask(id: number): Promise<Task | undefined>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
   
   // Budget methods
-  getBudgetItems(): Promise<BudgetItem[]>;
+  getBudgetItems(weddingProfileId?: number): Promise<BudgetItem[]>;
   getBudgetItem(id: number): Promise<BudgetItem | undefined>;
   createBudgetItem(budgetItem: InsertBudgetItem): Promise<BudgetItem>;
   updateBudgetItem(id: number, budgetItem: Partial<BudgetItem>): Promise<BudgetItem | undefined>;
   deleteBudgetItem(id: number): Promise<boolean>;
   
   // Vendor methods
-  getVendors(): Promise<Vendor[]>;
+  getVendors(weddingProfileId?: number): Promise<Vendor[]>;
   getVendor(id: number): Promise<Vendor | undefined>;
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   updateVendor(id: number, vendor: Partial<Vendor>): Promise<Vendor | undefined>;
@@ -82,83 +84,240 @@ export class MemStorage implements IStorage {
     this.currentBudgetItemId = 1;
     this.currentVendorId = 1;
     
-    this.seedData();
+    this.seedData().catch(console.error);
   }
 
-  private seedData() {
-    // Seed a test user for development
-    const testUser = {
-      username: 'sarah.johnson',
-      email: 'sarah@example.com',
-      password: 'password123',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      weddingProfileId: null,
+  private async seedData() {
+    // Create a wedding profile
+    const weddingProfile: WeddingProfile = {
+      id: this.currentWeddingProfileId++,
+      brideName: "Richa Tenany",
+      groomName: "John Doe",
+      weddingStartDate: "2024-06-15",
+      weddingEndDate: "2024-06-16",
+      venue: "Grand Hotel",
+      city: "New York",
+      state: "NY",
+      guestCount: 150,
+      budget: 50000,
+      functions: ["Rehearsal Dinner", "Wedding Ceremony", "Reception"],
+      createdAt: new Date(),
+      isComplete: false,
     };
-    
-    const userId = this.currentUserId++;
-    this.users.set(userId, { ...testUser, id: userId });
+    this.weddingProfiles.set(weddingProfile.id, weddingProfile);
 
-    // No default events - users will set up their own events
+    // Create a user with hashed password
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.default.hash("password123", 12);
+    const user: User = {
+      id: this.currentUserId++,
+      username: "richa",
+      password: hashedPassword,
+      role: "bride",
+      name: "Richa Tenany",
+      weddingProfileId: weddingProfile.id,
+    };
+    this.users.set(user.id, user);
 
-    // Seed budget items
-    const budgetItems = [
+    // Create events
+    const events: Event[] = [
       {
-        category: 'venue',
-        vendor: 'Royal Banquet Hall',
-        description: 'Wedding venue booking',
-        estimatedAmount: 150000,
-        actualAmount: 145000,
-        paidAmount: 50000,
-        status: 'partial',
-        eventId: null,
+        id: this.currentEventId++,
+        name: "Rehearsal Dinner",
+        description: "Intimate dinner with close family and wedding party",
+        date: "2024-06-14",
+        time: "18:00",
+        location: "Grand Hotel Restaurant",
+        progress: 100,
+        icon: "utensils",
+        color: "blue",
+        guestCount: 30,
+        weddingProfileId: weddingProfile.id,
       },
       {
-        category: 'photography',
-        vendor: 'Moments Studio',
-        description: 'Wedding photography and videography',
-        estimatedAmount: 75000,
-        actualAmount: 80000,
-        paidAmount: 80000,
-        status: 'paid',
-        eventId: null,
+        id: this.currentEventId++,
+        name: "Wedding Ceremony",
+        description: "The main wedding ceremony",
+        date: "2024-06-15",
+        time: "16:00",
+        location: "Grand Hotel Garden",
+        progress: 75,
+        icon: "heart",
+        color: "pink",
+        guestCount: 150,
+        weddingProfileId: weddingProfile.id,
       },
       {
-        category: 'catering',
-        vendor: 'Delicious Catering',
-        description: 'Food and beverages for all events',
-        estimatedAmount: 200000,
-        actualAmount: null,
-        paidAmount: null,
-        status: 'pending',
-        eventId: null,
-      },
-      {
-        category: 'attire',
-        vendor: 'Elegant Fashions',
-        description: 'Bridal lehenga and accessories',
-        estimatedAmount: 100000,
-        actualAmount: 95000,
-        paidAmount: 95000,
-        status: 'paid',
-        eventId: null,
-      },
-      {
-        category: 'flowers',
-        vendor: 'Blooms & Blossoms',
-        description: 'Floral decorations and garlands',
-        estimatedAmount: 50000,
-        actualAmount: null,
-        paidAmount: null,
-        status: 'pending',
-        eventId: null,
+        id: this.currentEventId++,
+        name: "Reception",
+        description: "Wedding reception with dinner and dancing",
+        date: "2024-06-15",
+        time: "18:00",
+        location: "Grand Hotel Ballroom",
+        progress: 60,
+        icon: "music",
+        color: "purple",
+        guestCount: 150,
+        weddingProfileId: weddingProfile.id,
       },
     ];
 
-    budgetItems.forEach(budgetItem => {
-      const id = this.currentBudgetItemId++;
-      this.budgetItems.set(id, { ...budgetItem, id });
-    });
+    events.forEach(event => this.events.set(event.id, event));
+
+    // Create guests
+    const guests: Guest[] = [
+      {
+        id: this.currentGuestId++,
+        name: "Nikesh Patel",
+        email: "nikesh@example.com",
+        phone: "+1-555-0123",
+        side: "bride",
+        rsvpStatus: "confirmed",
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentGuestId++,
+        name: "Priya Sharma",
+        email: "priya@example.com",
+        phone: "+1-555-0124",
+        side: "bride",
+        rsvpStatus: "pending",
+        weddingProfileId: weddingProfile.id,
+      },
+    ];
+
+    guests.forEach(guest => this.guests.set(guest.id, guest));
+
+    // Create tasks
+    const tasks: Task[] = [
+      {
+        id: this.currentTaskId++,
+        title: "Book wedding venue",
+        description: "Secure the main wedding venue",
+        category: "venue",
+        status: "completed",
+        assignedTo: "bride",
+        dueDate: "2024-01-15",
+        eventId: events[1].id,
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentTaskId++,
+        title: "Choose wedding photographer",
+        description: "Select and book wedding photographer",
+        category: "photography",
+        status: "in-progress",
+        assignedTo: "bride",
+        dueDate: "2024-02-01",
+        eventId: events[1].id,
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentTaskId++,
+        title: "Send invitations",
+        description: "Send wedding invitations to guests",
+        category: "invitations",
+        status: "todo",
+        assignedTo: "bride",
+        dueDate: "2024-03-01",
+        eventId: events[1].id,
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentTaskId++,
+        title: "Book catering service",
+        description: "Secure catering for reception",
+        category: "catering",
+        status: "in-progress",
+        assignedTo: "groom",
+        dueDate: "2024-02-15",
+        eventId: events[2].id,
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentTaskId++,
+        title: "Book catering service",
+        description: "Secure catering for reception",
+        category: "catering",
+        status: "todo",
+        assignedTo: "groom",
+        dueDate: "2024-02-15",
+        eventId: events[2].id,
+        weddingProfileId: weddingProfile.id,
+      },
+    ];
+
+    tasks.forEach(task => this.tasks.set(task.id, task));
+
+    // Create budget items
+    const budgetItems: BudgetItem[] = [
+      {
+        id: this.currentBudgetItemId++,
+        category: "venue",
+        vendor: "Royal Banquet Hall",
+        description: "Wedding ceremony and reception venue",
+        estimatedAmount: 15000,
+        actualAmount: 15000,
+        paidAmount: 7500,
+        status: "partial",
+        paidBy: "bride",
+        eventId: events[1].id,
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentBudgetItemId++,
+        category: "catering",
+        vendor: "Gourmet Catering Co.",
+        description: "Wedding reception catering",
+        estimatedAmount: 8000,
+        actualAmount: 0,
+        paidAmount: 0,
+        status: "pending",
+        paidBy: "groom",
+        eventId: events[2].id,
+        weddingProfileId: weddingProfile.id,
+      },
+    ];
+
+    budgetItems.forEach(budgetItem => this.budgetItems.set(budgetItem.id, budgetItem));
+
+    // Create vendors
+    const vendors: Vendor[] = [
+      {
+        id: this.currentVendorId++,
+        name: "Royal Banquet Hall",
+        category: "venue",
+        contact: "Sarah Johnson",
+        email: "sarah@royalbanquet.com",
+        phone: "+1-555-0100",
+        address: "123 Main St, New York, NY",
+        website: "www.royalbanquet.com",
+        contractUrl: "https://example.com/contract1.pdf",
+        notes: "Beautiful venue with excellent service",
+        totalPrice: 15000,
+        securityDeposit: 5000,
+        paidBy: "bride",
+        weddingProfileId: weddingProfile.id,
+      },
+      {
+        id: this.currentVendorId++,
+        name: "Gourmet Catering Co.",
+        category: "catering",
+        contact: "Mike Chen",
+        email: "mike@gourmetcatering.com",
+        phone: "+1-555-0101",
+        address: "456 Oak Ave, New York, NY",
+        website: "www.gourmetcatering.com",
+        contractUrl: null,
+        notes: "Highly recommended by previous clients",
+        totalPrice: 8000,
+        securityDeposit: 2000,
+        paidBy: "groom",
+        weddingProfileId: weddingProfile.id,
+      },
+    ];
+
+    vendors.forEach(vendor => this.vendors.set(vendor.id, vendor));
   }
 
   // User methods
@@ -170,11 +329,15 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.username === username);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(user: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const newUser: User = { 
+      ...user, 
+      id,
+      weddingProfileId: user.weddingProfileId || null,
+    };
+    this.users.set(id, newUser);
+    return newUser;
   }
 
   async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
@@ -191,16 +354,51 @@ export class MemStorage implements IStorage {
     return this.weddingProfiles.get(id);
   }
 
-  async createWeddingProfile(insertProfile: InsertWeddingProfile): Promise<WeddingProfile> {
+  async getWeddingProfiles(): Promise<WeddingProfile[]> {
+    return Array.from(this.weddingProfiles.values());
+  }
+
+  async createWeddingProfile(profile: InsertWeddingProfile): Promise<WeddingProfile> {
     const id = this.currentWeddingProfileId++;
-    const profile: WeddingProfile = { 
-      ...insertProfile, 
+    const newProfile: WeddingProfile = { 
+      ...profile, 
       id,
       createdAt: new Date(),
-      isComplete: insertProfile.isComplete || false
+      isComplete: profile.isComplete || false
     };
-    this.weddingProfiles.set(id, profile);
-    return profile;
+    this.weddingProfiles.set(id, newProfile);
+    
+    // Automatically create guest entries for bride and groom
+    // Extract last names from bride and groom names
+    const brideLastName = this.extractLastName(profile.brideName);
+    const groomLastName = this.extractLastName(profile.groomName);
+    
+    // Create bride guest entry
+    await this.createGuest({
+      name: profile.brideName,
+      email: '',
+      phone: '',
+      side: brideLastName,
+      rsvpStatus: 'confirmed',
+      weddingProfileId: newProfile.id,
+    });
+    
+    // Create groom guest entry
+    await this.createGuest({
+      name: profile.groomName,
+      email: '',
+      phone: '',
+      side: groomLastName,
+      rsvpStatus: 'confirmed',
+      weddingProfileId: newProfile.id,
+    });
+    
+    return newProfile;
+  }
+
+  private extractLastName(fullName: string): string {
+    const nameParts = fullName.trim().split(' ');
+    return nameParts.length > 1 ? nameParts[nameParts.length - 1] : fullName;
   }
 
   async updateWeddingProfile(id: number, profileUpdate: Partial<WeddingProfile>): Promise<WeddingProfile | undefined> {
@@ -224,17 +422,17 @@ export class MemStorage implements IStorage {
     return this.events.get(id);
   }
 
-  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+  async createEvent(event: InsertEvent): Promise<Event> {
     const id = this.currentEventId++;
-    const event: Event = { 
-      ...insertEvent, 
+    const newEvent: Event = { 
+      ...event, 
       id, 
       progress: 0, 
-      guestCount: insertEvent.guestCount || 0,
-      description: insertEvent.description || null
+      guestCount: event.guestCount || 0,
+      description: event.description || null
     };
-    this.events.set(id, event);
-    return event;
+    this.events.set(id, newEvent);
+    return newEvent;
   }
 
   async updateEvent(id: number, eventUpdate: Partial<Event>): Promise<Event | undefined> {
@@ -251,26 +449,29 @@ export class MemStorage implements IStorage {
   }
 
   // Guest methods
-  async getGuests(): Promise<Guest[]> {
-    return Array.from(this.guests.values());
+  async getGuests(weddingProfileId?: number): Promise<Guest[]> {
+    const allGuests = Array.from(this.guests.values());
+    if (weddingProfileId) {
+      return allGuests.filter(guest => guest.weddingProfileId === weddingProfileId);
+    }
+    return allGuests;
   }
 
   async getGuest(id: number): Promise<Guest | undefined> {
     return this.guests.get(id);
   }
 
-  async createGuest(insertGuest: InsertGuest): Promise<Guest> {
+  async createGuest(guest: InsertGuest): Promise<Guest> {
     const id = this.currentGuestId++;
-    const guest: Guest = { 
-      ...insertGuest, 
+    const newGuest: Guest = { 
+      ...guest, 
       id,
-      email: insertGuest.email || null,
-      phone: insertGuest.phone || null,
-      eventIds: insertGuest.eventIds || null,
-      rsvpStatus: insertGuest.rsvpStatus || null
+      email: guest.email || null,
+      phone: guest.phone || null,
+      rsvpStatus: guest.rsvpStatus || null
     };
-    this.guests.set(id, guest);
-    return guest;
+    this.guests.set(id, newGuest);
+    return newGuest;
   }
 
   async updateGuest(id: number, guestUpdate: Partial<Guest>): Promise<Guest | undefined> {
@@ -287,25 +488,31 @@ export class MemStorage implements IStorage {
   }
 
   // Task methods
-  async getTasks(): Promise<Task[]> {
-    return Array.from(this.tasks.values());
+  async getTasks(weddingProfileId?: number): Promise<Task[]> {
+    const allTasks = Array.from(this.tasks.values());
+    if (weddingProfileId) {
+      return allTasks.filter(task => task.weddingProfileId === weddingProfileId);
+    }
+    return allTasks;
   }
 
   async getTask(id: number): Promise<Task | undefined> {
     return this.tasks.get(id);
   }
 
-  async createTask(insertTask: InsertTask): Promise<Task> {
+  async createTask(task: InsertTask): Promise<Task> {
     const id = this.currentTaskId++;
-    const task: Task = { 
-      ...insertTask, 
+    const newTask: Task = { 
+      ...task, 
       id,
-      description: insertTask.description || null,
-      dueDate: insertTask.dueDate || null,
-      eventId: insertTask.eventId || null
+      description: task.description || null,
+      dueDate: task.dueDate || null,
+      eventId: task.eventId || null,
+      status: task.status || "todo",
+      weddingProfileId: task.weddingProfileId || null,
     };
-    this.tasks.set(id, task);
-    return task;
+    this.tasks.set(id, newTask);
+    return newTask;
   }
 
   async updateTask(id: number, taskUpdate: Partial<Task>): Promise<Task | undefined> {
@@ -322,26 +529,33 @@ export class MemStorage implements IStorage {
   }
 
   // Budget methods
-  async getBudgetItems(): Promise<BudgetItem[]> {
-    return Array.from(this.budgetItems.values());
+  async getBudgetItems(weddingProfileId?: number): Promise<BudgetItem[]> {
+    const allBudgetItems = Array.from(this.budgetItems.values());
+    if (weddingProfileId) {
+      return allBudgetItems.filter(budgetItem => budgetItem.weddingProfileId === weddingProfileId);
+    }
+    return allBudgetItems;
   }
 
   async getBudgetItem(id: number): Promise<BudgetItem | undefined> {
     return this.budgetItems.get(id);
   }
 
-  async createBudgetItem(insertBudgetItem: InsertBudgetItem): Promise<BudgetItem> {
+  async createBudgetItem(budgetItem: InsertBudgetItem): Promise<BudgetItem> {
     const id = this.currentBudgetItemId++;
-    const budgetItem: BudgetItem = {
-      ...insertBudgetItem,
+    const newBudgetItem: BudgetItem = { 
+      ...budgetItem, 
       id,
-      description: insertBudgetItem.description || null,
-      actualAmount: insertBudgetItem.actualAmount || null,
-      paidAmount: insertBudgetItem.paidAmount || null,
-      eventId: insertBudgetItem.eventId || null
+      description: budgetItem.description || null,
+      actualAmount: budgetItem.actualAmount || 0,
+      paidAmount: budgetItem.paidAmount || 0,
+      eventId: budgetItem.eventId || null,
+      status: budgetItem.status || "pending",
+      paidBy: budgetItem.paidBy || null,
+      weddingProfileId: budgetItem.weddingProfileId || null,
     };
-    this.budgetItems.set(id, budgetItem);
-    return budgetItem;
+    this.budgetItems.set(id, newBudgetItem);
+    return newBudgetItem;
   }
 
   async updateBudgetItem(id: number, budgetItemUpdate: Partial<BudgetItem>): Promise<BudgetItem | undefined> {
@@ -358,26 +572,38 @@ export class MemStorage implements IStorage {
   }
 
   // Vendor methods
-  async getVendors(): Promise<Vendor[]> {
-    return Array.from(this.vendors.values());
+  async getVendors(weddingProfileId?: number): Promise<Vendor[]> {
+    const allVendors = Array.from(this.vendors.values());
+    if (weddingProfileId) {
+      return allVendors.filter(vendor => vendor.weddingProfileId === weddingProfileId);
+    }
+    return allVendors;
   }
 
   async getVendor(id: number): Promise<Vendor | undefined> {
     return this.vendors.get(id);
   }
 
-  async createVendor(insertVendor: InsertVendor): Promise<Vendor> {
+  async createVendor(vendor: InsertVendor): Promise<Vendor> {
     const id = this.currentVendorId++;
-    const vendor: Vendor = {
-      ...insertVendor,
+    const newVendor: Vendor = { 
+      ...vendor, 
       id,
-      contactInfo: insertVendor.contactInfo || null,
-      notes: insertVendor.notes || null,
-      contractUploaded: insertVendor.contractUploaded || false,
-      eventId: insertVendor.eventId || null
+      contact: vendor.contact || null,
+      email: vendor.email || null,
+      phone: vendor.phone || null,
+      address: vendor.address || null,
+      website: vendor.website || null,
+      contractUrl: vendor.contractUrl || null,
+      notes: vendor.notes || null,
+
+      totalPrice: vendor.totalPrice || null,
+      securityDeposit: vendor.securityDeposit || null,
+      paidBy: vendor.paidBy || null,
+      weddingProfileId: vendor.weddingProfileId || null,
     };
-    this.vendors.set(id, vendor);
-    return vendor;
+    this.vendors.set(id, newVendor);
+    return newVendor;
   }
 
   async updateVendor(id: number, vendorUpdate: Partial<Vendor>): Promise<Vendor | undefined> {
@@ -409,7 +635,10 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values({
+        ...insertUser,
+        weddingProfileId: insertUser.weddingProfileId || null,
+      })
       .returning();
     return user;
   }
@@ -423,7 +652,10 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getEvents(): Promise<Event[]> {
+  async getEvents(weddingProfileId?: number): Promise<Event[]> {
+    if (weddingProfileId) {
+      return await db.select().from(events).where(eq(events.weddingProfileId, weddingProfileId));
+    }
     return await db.select().from(events);
   }
 
@@ -451,10 +683,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEvent(id: number): Promise<boolean> {
     const result = await db.delete(events).where(eq(events.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
-  async getGuests(): Promise<Guest[]> {
+  async getGuests(weddingProfileId?: number): Promise<Guest[]> {
+    if (weddingProfileId) {
+      return await db.select().from(guests).where(eq(guests.weddingProfileId, weddingProfileId));
+    }
     return await db.select().from(guests);
   }
 
@@ -466,7 +701,12 @@ export class DatabaseStorage implements IStorage {
   async createGuest(insertGuest: InsertGuest): Promise<Guest> {
     const [guest] = await db
       .insert(guests)
-      .values(insertGuest)
+      .values({
+        ...insertGuest,
+        email: insertGuest.email || null,
+        phone: insertGuest.phone || null,
+        rsvpStatus: insertGuest.rsvpStatus || null
+      })
       .returning();
     return guest;
   }
@@ -482,10 +722,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGuest(id: number): Promise<boolean> {
     const result = await db.delete(guests).where(eq(guests.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
-  async getTasks(): Promise<Task[]> {
+  async getTasks(weddingProfileId?: number): Promise<Task[]> {
+    if (weddingProfileId) {
+      return await db.select().from(tasks).where(eq(tasks.weddingProfileId, weddingProfileId));
+    }
+    // If no weddingProfileId provided, return all tasks (backward compatibility)
     return await db.select().from(tasks);
   }
 
@@ -513,10 +757,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTask(id: number): Promise<boolean> {
     const result = await db.delete(tasks).where(eq(tasks.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
-  async getBudgetItems(): Promise<BudgetItem[]> {
+  async getBudgetItems(weddingProfileId?: number): Promise<BudgetItem[]> {
+    if (weddingProfileId) {
+      return await db.select().from(budgetItems).where(eq(budgetItems.weddingProfileId, weddingProfileId));
+    }
+    // If no weddingProfileId provided, return all budget items (backward compatibility)
     return await db.select().from(budgetItems);
   }
 
@@ -544,10 +792,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBudgetItem(id: number): Promise<boolean> {
     const result = await db.delete(budgetItems).where(eq(budgetItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
-  async getVendors(): Promise<Vendor[]> {
+  async getVendors(weddingProfileId?: number): Promise<Vendor[]> {
+    if (weddingProfileId) {
+      return await db.select().from(vendors).where(eq(vendors.weddingProfileId, weddingProfileId));
+    }
+    // If no weddingProfileId provided, return all vendors (backward compatibility)
     return await db.select().from(vendors);
   }
 
@@ -575,7 +827,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteVendor(id: number): Promise<boolean> {
     const result = await db.delete(vendors).where(eq(vendors.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async getWeddingProfile(id: number): Promise<WeddingProfile | undefined> {
@@ -583,12 +835,49 @@ export class DatabaseStorage implements IStorage {
     return profile || undefined;
   }
 
+  async getWeddingProfiles(): Promise<WeddingProfile[]> {
+    return await db.select().from(weddingProfiles);
+  }
+
   async createWeddingProfile(insertProfile: InsertWeddingProfile): Promise<WeddingProfile> {
     const [profile] = await db
       .insert(weddingProfiles)
       .values(insertProfile)
       .returning();
+    
+    // Automatically create guest entries for bride and groom
+    if (profile) {
+      // Extract last names from bride and groom names
+      const brideLastName = this.extractLastName(insertProfile.brideName);
+      const groomLastName = this.extractLastName(insertProfile.groomName);
+      
+      // Create bride guest entry
+      await this.createGuest({
+        name: insertProfile.brideName,
+        email: '',
+        phone: '',
+        side: brideLastName,
+        rsvpStatus: 'confirmed',
+        weddingProfileId: profile.id,
+      });
+      
+      // Create groom guest entry
+      await this.createGuest({
+        name: insertProfile.groomName,
+        email: '',
+        phone: '',
+        side: groomLastName,
+        rsvpStatus: 'confirmed',
+        weddingProfileId: profile.id,
+      });
+    }
+    
     return profile;
+  }
+
+  private extractLastName(fullName: string): string {
+    const nameParts = fullName.trim().split(' ');
+    return nameParts.length > 1 ? nameParts[nameParts.length - 1] : fullName;
   }
 
   async updateWeddingProfile(id: number, profileUpdate: Partial<WeddingProfile>): Promise<WeddingProfile | undefined> {

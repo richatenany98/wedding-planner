@@ -1,19 +1,29 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertEventSchema, insertGuestSchema, insertTaskSchema, insertBudgetItemSchema, insertVendorSchema, insertUserSchema, insertWeddingProfileSchema } from "@shared/schema";
+import { insertEventSchema, insertGuestSchema, insertTaskSchema, insertBudgetItemSchema, insertVendorSchema, insertUserSchema, insertWeddingProfileSchema, type User } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
+import { authenticateUser, authorizeUser } from "./index";
+import "./types"; // Import type declarations
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Clear rate limit for development
+  app.get("/api/clear-rate-limit", (req, res) => {
+    res.json({ message: "Rate limit cleared" });
+  });
   // Auth routes
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
       const user = await storage.getUserByUsername(username);
       
-      if (!user || user.password !== password) {
+      if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
+      
+      // Set session
+      req.session.userId = user.id;
       
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
@@ -32,7 +42,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username already exists" });
       }
       
-      const user = await storage.createUser(userData);
+      // Hash password
+      const hashedPassword = await bcrypt.hash(userData.password, 12);
+      const userWithHashedPassword = { ...userData, password: hashedPassword };
+      
+      const user = await storage.createUser(userWithHashedPassword);
+      
+      // Set session
+      req.session.userId = user.id;
       
       const { password: _, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
@@ -42,16 +59,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
   // Wedding profile routes
-  app.post("/api/wedding-profile", async (req, res) => {
+  app.post("/api/wedding-profile", authenticateUser, async (req, res) => {
     try {
       const profileData = insertWeddingProfileSchema.parse(req.body);
       const weddingProfile = await storage.createWeddingProfile(profileData);
       
-      // If userId is provided, associate the profile with the user
-      if (req.body.userId) {
-        await storage.updateUser(req.body.userId, { weddingProfileId: weddingProfile.id });
-      }
+      // Associate the profile with the current user
+      await storage.updateUser((req as any).user!.id, { weddingProfileId: weddingProfile.id });
       
       res.status(201).json(weddingProfile);
     } catch (error) {
@@ -60,7 +84,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/wedding-profile/:id", async (req, res) => {
+  app.get("/api/wedding-profile", authenticateUser, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      if (!user.weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const profile = await storage.getWeddingProfile(user.weddingProfileId);
+      if (!profile) {
+        return res.status(404).json({ error: "Wedding profile not found" });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch wedding profile" });
+    }
+  });
+
+  app.get("/api/wedding-profile/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const profile = await storage.getWeddingProfile(id);
@@ -74,9 +116,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Events routes
-  app.get("/api/events", async (req, res) => {
+  app.get("/api/events", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const weddingProfileId = req.query.weddingProfileId ? parseInt(req.query.weddingProfileId as string) : undefined;
+      const weddingProfileId = (req as any).user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
       const events = await storage.getEvents(weddingProfileId);
       // Sort events by date for consistent ordering
       const sortedEvents = events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -86,33 +132,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/events/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const event = await storage.getEvent(id);
-      if (!event) {
-        return res.status(404).json({ error: "Event not found" });
-      }
-      res.json(event);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch event" });
-    }
-  });
-
-  app.post("/api/events", async (req, res) => {
+  app.post("/api/events", authenticateUser, authorizeUser, async (req, res) => {
     try {
       console.log("Received event data:", req.body);
-      const eventData = insertEventSchema.parse(req.body);
+      const eventData = insertEventSchema.parse({
+        ...req.body,
+        weddingProfileId: req.user!.weddingProfileId
+      });
       console.log("Parsed event data:", eventData);
       const event = await storage.createEvent(eventData);
       res.status(201).json(event);
     } catch (error) {
       console.error("Event creation error:", error);
-      res.status(400).json({ error: "Invalid event data", details: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(400).json({ error: "Invalid event data", details: errorMessage });
     }
   });
 
-  app.put("/api/events/:id", async (req, res) => {
+  app.put("/api/events/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const eventData = req.body;
@@ -126,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/events/:id", async (req, res) => {
+  app.delete("/api/events/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteEvent(id);
@@ -140,18 +177,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Guests routes
-  app.get("/api/guests", async (req, res) => {
+  app.get("/api/guests", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const guests = await storage.getGuests();
+      const weddingProfileId = req.user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const guests = await storage.getGuests(weddingProfileId);
       res.json(guests);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch guests" });
     }
   });
 
-  app.post("/api/guests", async (req, res) => {
+  app.post("/api/guests", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const guestData = insertGuestSchema.parse(req.body);
+      const guestData = insertGuestSchema.parse({
+        ...req.body,
+        weddingProfileId: req.user!.weddingProfileId
+      });
       const guest = await storage.createGuest(guestData);
       res.status(201).json(guest);
     } catch (error) {
@@ -159,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/guests/:id", async (req, res) => {
+  app.put("/api/guests/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const guestData = req.body;
@@ -173,7 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/guests/:id", async (req, res) => {
+  app.delete("/api/guests/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteGuest(id);
@@ -187,18 +232,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Tasks routes
-  app.get("/api/tasks", async (req, res) => {
+  app.get("/api/tasks", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const tasks = await storage.getTasks();
+      const weddingProfileId = req.user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const tasks = await storage.getTasks(weddingProfileId);
       res.json(tasks);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch tasks" });
     }
   });
 
-  app.post("/api/tasks", async (req, res) => {
+  app.post("/api/tasks", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const taskData = insertTaskSchema.parse(req.body);
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        weddingProfileId: req.user!.weddingProfileId
+      });
       const task = await storage.createTask(taskData);
       res.status(201).json(task);
     } catch (error) {
@@ -206,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/tasks/:id", async (req, res) => {
+  app.put("/api/tasks/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const taskData = req.body;
@@ -220,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/tasks/:id", async (req, res) => {
+  app.delete("/api/tasks/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteTask(id);
@@ -234,19 +287,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Export routes
-  app.get("/api/export/guests", async (req, res) => {
+  app.get("/api/export/guests", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const guests = await storage.getGuests();
-      const events = await storage.getEvents();
+      const weddingProfileId = req.user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const guests = await storage.getGuests(weddingProfileId);
       
       const csv = [
-        "Name,Email,Phone,Relation,Events,RSVP Status",
-        ...guests.map(guest => {
-          const guestEvents = guest.eventIds ? 
-            guest.eventIds.map(id => events.find(e => e.id === parseInt(id))?.name).filter(Boolean).join(";") : 
-            "";
-          return `"${guest.name}","${guest.email || ""}","${guest.phone || ""}","${guest.relation}","${guestEvents}","${guest.rsvpStatus}"`;
-        })
+        "Name,Email,Phone,Side,RSVP Status",
+        ...guests.map(guest => 
+          `"${guest.name}","${guest.email || ""}","${guest.phone || ""}","${guest.side}","${guest.rsvpStatus || "pending"}"`
+        )
       ].join("\n");
       
       res.setHeader("Content-Type", "text/csv");
@@ -257,9 +311,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/export/tasks", async (req, res) => {
+  app.get("/api/export/tasks", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const tasks = await storage.getTasks();
+      const weddingProfileId = req.user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const tasks = await storage.getTasks(weddingProfileId);
       
       const csv = [
         "Title,Description,Category,Status,Assigned To,Due Date",
@@ -277,18 +336,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Budget routes
-  app.get("/api/budget", async (req, res) => {
+  app.get("/api/budget", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const budgetItems = await storage.getBudgetItems();
+      const weddingProfileId = req.user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const budgetItems = await storage.getBudgetItems(weddingProfileId);
       res.json(budgetItems);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch budget items" });
     }
   });
 
-  app.post("/api/budget", async (req, res) => {
+  app.post("/api/budget", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const budgetData = insertBudgetItemSchema.parse(req.body);
+      const budgetData = insertBudgetItemSchema.parse({
+        ...req.body,
+        weddingProfileId: req.user!.weddingProfileId
+      });
       const budgetItem = await storage.createBudgetItem(budgetData);
       res.status(201).json(budgetItem);
     } catch (error) {
@@ -296,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/budget/:id", async (req, res) => {
+  app.put("/api/budget/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const budgetData = req.body;
@@ -310,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/budget/:id", async (req, res) => {
+  app.delete("/api/budget/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteBudgetItem(id);
@@ -324,18 +391,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor routes
-  app.get("/api/vendors", async (req, res) => {
+  app.get("/api/vendors", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const vendors = await storage.getVendors();
+      const weddingProfileId = req.user!.weddingProfileId;
+      if (!weddingProfileId) {
+        return res.status(404).json({ error: "No wedding profile found" });
+      }
+      
+      const vendors = await storage.getVendors(weddingProfileId);
       res.json(vendors);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch vendors" });
     }
   });
 
-  app.post("/api/vendors", async (req, res) => {
+  app.post("/api/vendors", authenticateUser, authorizeUser, async (req, res) => {
     try {
-      const vendorData = insertVendorSchema.parse(req.body);
+      const vendorData = insertVendorSchema.parse({
+        ...req.body,
+        weddingProfileId: req.user!.weddingProfileId
+      });
       const vendor = await storage.createVendor(vendorData);
       res.status(201).json(vendor);
     } catch (error) {
@@ -343,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/vendors/:id", async (req, res) => {
+  app.put("/api/vendors/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const vendorData = req.body;
@@ -357,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/vendors/:id", async (req, res) => {
+  app.delete("/api/vendors/:id", authenticateUser, authorizeUser, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteVendor(id);

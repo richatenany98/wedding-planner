@@ -22,10 +22,10 @@ function Router({ weddingProfile }: { weddingProfile: WeddingProfile }) {
   return (
     <Switch>
       <Route path="/" component={() => <Dashboard weddingProfile={weddingProfile} />} />
-      <Route path="/guests" component={GuestList} />
-      <Route path="/tasks" component={TaskBoard} />
-      <Route path="/budget" component={Budget} />
-      <Route path="/vendors" component={Vendors} />
+      <Route path="/guests" component={() => <GuestList weddingProfile={weddingProfile} />} />
+      <Route path="/tasks" component={() => <TaskBoard weddingProfile={weddingProfile} />} />
+      <Route path="/budget" component={() => <Budget weddingProfile={weddingProfile} />} />
+      <Route path="/vendors" component={() => <Vendors weddingProfile={weddingProfile} />} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -44,29 +44,38 @@ function App() {
     const savedProfile = localStorage.getItem('weddingProfile');
     
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    
-    if (savedProfile) {
-      setWeddingProfile(JSON.parse(savedProfile));
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
       
-      // Check if events exist for this profile
-      const checkEvents = async () => {
-        try {
-          const profile = JSON.parse(savedProfile);
-          const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
-          const events = await eventsResponse.json();
-          
-          // If no events exist, user needs to set up events
-          if (events.length === 0) {
-            setNeedsEventSetup(true);
+      // Only check for events if we have both user and profile
+      if (savedProfile) {
+        setWeddingProfile(JSON.parse(savedProfile));
+        
+        // Check if events exist for this profile
+        const checkEvents = async () => {
+          try {
+            const profile = JSON.parse(savedProfile);
+            const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
+            const events = await eventsResponse.json();
+            
+            // If no events exist, user needs to set up events
+            if (events.length === 0) {
+              setNeedsEventSetup(true);
+            }
+          } catch (error) {
+            console.error('Failed to fetch events:', error);
+            // If we get an auth error, clear the stored data
+            if (error instanceof Error && error.message.includes('401')) {
+              localStorage.removeItem('user');
+              localStorage.removeItem('weddingProfile');
+              setUser(null);
+              setWeddingProfile(null);
+            }
           }
-        } catch (error) {
-          console.error('Failed to fetch events:', error);
-        }
-      };
-      
-      checkEvents();
+        };
+        
+        checkEvents();
+      }
     }
     
     setIsLoading(false);
@@ -126,10 +135,13 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto mb-4"></div>
-          <p className="text-neutral-600">Loading...</p>
+          <div className="loading-spinner h-16 w-16 mx-auto mb-6"></div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            WeddingWizard
+          </h2>
+          <p className="text-neutral-600 animate-pulse">Loading your magical journey...</p>
         </div>
       </div>
     );
@@ -147,7 +159,7 @@ function App() {
         ) : (
           <div className="min-h-screen flex flex-col lg:flex-row">
             <Sidebar weddingProfile={weddingProfile} onLogout={handleLogout} />
-            <main className="flex-1 overflow-hidden">
+            <main className="flex-1 overflow-hidden page-transition">
               <Router weddingProfile={weddingProfile} />
             </main>
           </div>

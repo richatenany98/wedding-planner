@@ -48,6 +48,7 @@ export const guests = pgTable("guests", {
   phone: text("phone"),
   side: text("side").notNull(),
   rsvpStatus: text("rsvp_status").default("pending"),
+  weddingProfileId: integer("wedding_profile_id").notNull(),
 });
 
 export const tasks = pgTable("tasks", {
@@ -59,6 +60,7 @@ export const tasks = pgTable("tasks", {
   assignedTo: text("assigned_to").notNull(),
   dueDate: text("due_date"),
   eventId: integer("event_id"),
+  weddingProfileId: integer("wedding_profile_id"),
 });
 
 export const budgetItems = pgTable("budget_items", {
@@ -70,7 +72,9 @@ export const budgetItems = pgTable("budget_items", {
   actualAmount: integer("actual_amount").default(0),
   paidAmount: integer("paid_amount").default(0),
   status: text("status").notNull().default("pending"),
+  paidBy: text("paid_by"), // 'bride', 'groom', 'both', 'family'
   eventId: integer("event_id"),
+  weddingProfileId: integer("wedding_profile_id"),
 });
 
 export const vendors = pgTable("vendors", {
@@ -84,7 +88,10 @@ export const vendors = pgTable("vendors", {
   website: text("website"),
   contractUrl: text("contract_url"),
   notes: text("notes"),
-  status: text("status").notNull().default("active"),
+  totalPrice: integer("total_price"),
+  securityDeposit: integer("security_deposit"),
+  paidBy: text("paid_by"), // 'bride', 'groom', 'both', 'family'
+  weddingProfileId: integer("wedding_profile_id"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -128,6 +135,7 @@ export const insertGuestSchema = createInsertSchema(guests).pick({
   phone: true,
   side: true,
   rsvpStatus: true,
+  weddingProfileId: true,
 });
 
 export const insertTaskSchema = createInsertSchema(tasks).pick({
@@ -138,6 +146,9 @@ export const insertTaskSchema = createInsertSchema(tasks).pick({
   assignedTo: true,
   dueDate: true,
   eventId: true,
+  weddingProfileId: true,
+}).extend({
+  weddingProfileId: z.number().optional(),
 });
 
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).pick({
@@ -148,7 +159,11 @@ export const insertBudgetItemSchema = createInsertSchema(budgetItems).pick({
   actualAmount: true,
   paidAmount: true,
   status: true,
+  paidBy: true,
   eventId: true,
+  weddingProfileId: true,
+}).extend({
+  weddingProfileId: z.number().optional(),
 });
 
 export const insertVendorSchema = createInsertSchema(vendors).pick({
@@ -161,7 +176,12 @@ export const insertVendorSchema = createInsertSchema(vendors).pick({
   website: true,
   contractUrl: true,
   notes: true,
-  status: true,
+  totalPrice: true,
+  securityDeposit: true,
+  paidBy: true,
+  weddingProfileId: true,
+}).extend({
+  weddingProfileId: z.number().optional(),
 });
 
 export type User = typeof users.$inferSelect;

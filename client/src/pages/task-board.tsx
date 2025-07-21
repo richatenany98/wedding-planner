@@ -1,10 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
 import { KanbanBoard } from '@/components/kanban-board';
+import { WeddingProfile } from '@shared/schema';
 
+interface TaskBoardProps {
+  weddingProfile: WeddingProfile;
+}
 
-export default function TaskBoard() {
+export default function TaskBoard({ weddingProfile }: TaskBoardProps) {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
@@ -26,7 +29,7 @@ export default function TaskBoard() {
             <CardTitle>Task Board</CardTitle>
           </CardHeader>
           <CardContent>
-            <KanbanBoard />
+            <KanbanBoard weddingProfile={weddingProfile} />
           </CardContent>
         </Card>
       </div>
