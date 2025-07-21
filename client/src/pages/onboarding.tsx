@@ -148,6 +148,13 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
     });
   };
 
+  const handleCancel = () => {
+    // Remove user and weddingProfile from localStorage and reload
+    localStorage.removeItem('user');
+    localStorage.removeItem('weddingProfile');
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl shadow-2xl bg-white/90 backdrop-blur-sm border-0">
@@ -400,7 +407,14 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
                 >
                   Previous
                 </Button>
-                
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCancel}
+                  className="ml-2 text-rose-500 hover:text-rose-700"
+                >
+                  Cancel / Back to Login
+                </Button>
                 {currentStep < steps.length - 1 ? (
                   <Button
                     type="button"
