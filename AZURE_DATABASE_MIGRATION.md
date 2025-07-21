@@ -374,3 +374,67 @@ If you need to re-import your database data, make sure your `DATABASE_URL` in Az
 ---
 
 **You’re all set to use these names for all future deployment, logging, and configuration commands! If you need help with any next step, just let me know.** 
+
+---
+
+## **Common Causes & Fixes**
+
+### 1. **Cookie Not Set or Not Sent**
+- In production (HTTPS), cookies must be set with `secure: true`.
+- If your frontend and backend are on different domains, you must set `sameSite: 'none'` and `secure: true` for cookies.
+
+### 2. **CORS Misconfiguration**
+- The backend must allow credentials (cookies) in CORS:
+  ```js
+  app.use(cors({
+    origin: 'https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net', // or your frontend URL
+    credentials: true
+  }));
+  ```
+- The frontend must send credentials:
+  ```js
+  fetch(url, { credentials: 'include', ... })
+  ```
+
+### 3. **Session Store Issues**
+- If your session store is not working (e.g., can’t connect to DB), sessions won’t persist.
+
+### 4. **Domain/Path Mismatch**
+- Cookies must be set for the correct domain and path.
+
+---
+
+## **How to Debug Further**
+
+### **A. Check Set-Cookie Header**
+- In the Network tab, after logging in, check the response headers for `Set-Cookie`.
+- Is the cookie being set? What are its attributes (`Secure`, `SameSite`, `Domain`)?
+
+### **B. Check Request Headers**
+- On subsequent requests, is the cookie being sent to the server?
+
+### **C. Check Server Session Config**
+- In your Express session middleware, make sure you have:
+  ```js
+  app.use(session({
+    // ...
+    cookie: {
+      secure: true, // required for HTTPS
+      sameSite: 'none', // required for cross-site cookies
+      // domain: '.azurewebsites.net', // (optional, if using subdomains)
+      // other options...
+    }
+  }));
+  ```
+
+---
+
+## **What to Share for Fastest Help**
+1. The `Set-Cookie` header from the login response (from browser Network tab).
+2. Your Express session middleware config (from your server code).
+3. The `origin` and `credentials` settings in your CORS config.
+
+---
+
+**If you paste these, I’ll give you the exact fix for your production login!**  
+This is a very common deployment hurdle and is almost always a cookie/session config issue. 
