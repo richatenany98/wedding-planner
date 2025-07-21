@@ -17,6 +17,7 @@ import EventLogistics from "@/pages/event-logistics";
 import NotFound from "@/pages/not-found";
 import { User, WeddingProfile } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
 
 function Router({ weddingProfile }: { weddingProfile: WeddingProfile }) {
   return (
@@ -157,7 +158,13 @@ function App() {
         ) : showOnboarding ? (
           <Onboarding user={user} onComplete={handleOnboardingComplete} />
         ) : !weddingProfile ? (
-          <Dashboard weddingProfile={{} as WeddingProfile} />
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-rose-600 mb-2">No Wedding Profile Found</h2>
+              <p className="text-neutral-600 mb-4">Please contact support or create a new account to set up your wedding profile.</p>
+              <Button onClick={handleLogout}>Back to Login</Button>
+            </div>
+          </div>
         ) : needsEventSetup ? (
           <EventLogistics weddingProfile={weddingProfile} onComplete={handleEventSetupComplete} />
         ) : (
