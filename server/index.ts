@@ -16,8 +16,6 @@ import "./types"; // Import type declarations
 
 const app = express();
 
-console.log("✅ Server started");
-console.log("DATABASE_URL:", process.env.DATABASE_URL);
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
