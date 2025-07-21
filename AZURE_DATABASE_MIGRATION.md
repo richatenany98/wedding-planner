@@ -263,3 +263,114 @@ If you need to rollback to Neon:
 4. ✅ Update documentation
 5. ✅ Plan for future scaling
 6. ✅ Consider decommissioning Neon (after confirming everything works) 
+
+---
+
+## **Checklist: Why Data Might Not Show Up**
+
+### 1. **Wrong Database Connection**
+- Double-check your Azure App Service **Configuration** for `DATABASE_URL`.
+- It should be:
+  ```
+  postgresql://dbadmin:WeddingWizard2024!@weddingwizard-db.postgres.database.azure.com:5432/weddingwizard?sslmode=require
+  ```
+- If this is wrong or points to a different database, your app will show up empty.
+
+### 2. **Migration/Import Not Done on Azure DB**
+- Did you run the migration script to import your Neon data into the Azure PostgreSQL database?
+- If not, your Azure DB will be empty (even though the app connects).
+
+### 3. **App is Pointing to a Fresh Database**
+- If you created a new database or changed the name, it will be empty until you import your data.
+
+---
+
+## **How to Fix**
+
+### **A. Check Your Azure Database**
+- Connect to your Azure PostgreSQL database using a tool like `psql` or Azure Data Studio:
+  ```bash
+  psql "postgresql://dbadmin:WeddingWizard2024!@weddingwizard-db.postgres.database.azure.com:5432/weddingwizard?sslmode=require"
+  ```
+- Run:
+  ```sql
+  \dt
+  SELECT COUNT(*) FROM guests;
+  SELECT COUNT(*) FROM users;
+  ```
+- If the tables are empty, the data was not imported.
+
+---
+
+### **B. Re-Import Your Data**
+
+If you haven’t already, run the import step from your migration script:
+```bash
+PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH" node migrate-to-azure.js import
+```
+- This will import your Neon backup into your Azure database.
+
+---
+
+### **C. Restart Your App Service**
+
+After importing, restart your app:
+```bash
+az webapp restart --name wedding-planner --resource-group weddingwizard-rg
+```
+
+---
+
+### **D. Refresh Your Site**
+
+- Reload your site and check if your data appears.
+
+---
+
+## **If You Need Help:**
+- Let me know if you want step-by-step help with the import.
+- If you see any errors during import, paste them here.
+
+---
+
+**You’re so close! Once the data is imported into your Azure DB, your app will show all your existing content.** 
+
+---
+
+## **What to Use for All Azure CLI Commands**
+
+Whenever you run Azure CLI commands, use:
+- `--name wedding-planner`
+- `--resource-group weddingwizard-rg`
+
+**Example:**
+```bash
+az webapp log tail --name wedding-planner --resource-group weddingwizard-rg
+```
+or
+```bash
+az webapp restart --name wedding-planner --resource-group weddingwizard-rg
+```
+
+---
+
+## **For Your GitHub Actions Workflow**
+
+Your deploy step should be:
+```yaml
+<code_block_to_apply_changes_from>
+with:
+  app-name: wedding-planner
+  slot-name: 'production'
+  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+```
+
+---
+
+## **If You Need to Import Data**
+
+If you need to re-import your database data, make sure your `DATABASE_URL` in Azure App Service Configuration is set to your Azure PostgreSQL instance.
+
+---
+
+**You’re all set to use these names for all future deployment, logging, and configuration commands! If you need help with any next step, just let me know.** 
