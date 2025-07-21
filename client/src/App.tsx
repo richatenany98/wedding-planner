@@ -36,6 +36,7 @@ function App() {
   const [weddingProfile, setWeddingProfile] = useState<WeddingProfile | null>(null);
   const [needsEventSetup, setNeedsEventSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -81,22 +82,21 @@ function App() {
     setIsLoading(false);
   }, []);
 
-  const handleLogin = async (userData: User) => {
+  const handleLogin = async (userData: User, options: { isNew: boolean } = { isNew: false }): Promise<void> => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Check if user has a wedding profile
+
     if (userData.weddingProfileId) {
       try {
         const response = await apiRequest('GET', `/api/wedding-profile/${userData.weddingProfileId}`);
         const profile = await response.json();
         setWeddingProfile(profile);
         localStorage.setItem('weddingProfile', JSON.stringify(profile));
-        
+
         // Check if events exist for this profile
         const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
         const events = await eventsResponse.json();
-        
+
         // If no events exist, user needs to set up events
         if (events.length === 0) {
           setNeedsEventSetup(true);
@@ -104,6 +104,8 @@ function App() {
       } catch (error) {
         console.error('Failed to fetch wedding profile:', error);
       }
+    } else if (options.isNew) {
+      setShowOnboarding(true);
     }
   };
 
@@ -151,9 +153,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         {!user ? (
-          <Login onLogin={handleLogin} />
-        ) : !weddingProfile ? (
+          <Login onLogin={(userData, options) => handleLogin(userData, options)} />
+        ) : showOnboarding ? (
           <Onboarding user={user} onComplete={handleOnboardingComplete} />
+        ) : !weddingProfile ? (
+          <Dashboard weddingProfile={{} as WeddingProfile} />
         ) : needsEventSetup ? (
           <EventLogistics weddingProfile={weddingProfile} onComplete={handleEventSetupComplete} />
         ) : (

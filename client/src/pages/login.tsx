@@ -26,7 +26,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 interface LoginProps {
-  onLogin: (user: any) => void;
+  onLogin: (user: any, options?: { isNew: boolean }) => void;
 }
 
 export default function Login({ onLogin }: LoginProps) {
@@ -59,7 +59,7 @@ export default function Login({ onLogin }: LoginProps) {
     try {
       const response = await apiRequest('POST', '/api/auth/login', data);
       const user = await response.json();
-      onLogin(user);
+      onLogin(user, { isNew: false });
     } catch (err) {
       setError('Invalid username or password');
     } finally {
@@ -79,7 +79,7 @@ export default function Login({ onLogin }: LoginProps) {
         role: 'bride'
       });
       const user = await response.json();
-      onLogin(user);
+      onLogin(user, { isNew: true });
     } catch (err) {
       setError('Registration failed. Username might already exist.');
     } finally {
