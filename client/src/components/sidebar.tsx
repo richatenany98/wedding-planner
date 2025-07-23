@@ -19,7 +19,9 @@ export function Sidebar({ weddingProfile, onLogout }: SidebarProps) {
   const { data: events = [] } = useQuery({
     queryKey: ['/api/events', weddingProfile.id],
     queryFn: () => 
-      fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then(res => {
+      fetch(`/api/events?weddingProfileId=${weddingProfile.id}`, {
+        credentials: 'include',
+      }).then(res => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -33,7 +35,9 @@ export function Sidebar({ weddingProfile, onLogout }: SidebarProps) {
   const { data: guests = [] } = useQuery({
     queryKey: ['/api/guests', weddingProfile.id],
     queryFn: () => 
-      fetch(`/api/guests?weddingProfileId=${weddingProfile.id}`).then(res => {
+      fetch(`/api/guests?weddingProfileId=${weddingProfile.id}`, {
+        credentials: 'include',
+      }).then(res => { 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }

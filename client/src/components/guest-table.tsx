@@ -70,11 +70,12 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
     queryKey: ["/api/guests", weddingProfile?.id],
     queryFn: () => 
       weddingProfile 
-        ? fetch(`/api/guests?weddingProfileId=${weddingProfile.id}`).then(res => res.json())
+        ? fetch(`/api/guests?weddingProfileId=${weddingProfile.id}`, {
+            credentials: 'include',
+          }).then(res => res.json())
         : Promise.resolve([]),
     enabled: !!weddingProfile,
   });
-
   const createGuestMutation = useMutation({
     mutationFn: async (data: GuestFormData) => {
       const response = await apiRequest("POST", "/api/guests", data);

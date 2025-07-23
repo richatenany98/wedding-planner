@@ -199,7 +199,9 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events", weddingProfile.id],
     queryFn: () =>
-      fetch(`/api/events?weddingProfileId=${weddingProfile.id}`).then((res) => {
+      fetch(`/api/events?weddingProfileId=${weddingProfile.id}`, {
+        credentials: 'include',
+      }).then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }

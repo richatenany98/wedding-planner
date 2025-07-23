@@ -47,7 +47,7 @@ app.use(limiter);
 // CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://yourdomain.com']
+    ? ['https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net']
     : ['http://localhost:5000', 'http://localhost:5173'],
   credentials: true,
 }));

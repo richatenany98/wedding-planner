@@ -22,7 +22,9 @@ export function downloadCSV(data: any[], filename: string, headers: string[]) {
 
 export async function exportGuests() {
   try {
-    const response = await fetch('/api/export/guests');
+    const response = await fetch('/api/export/guests', {
+      credentials: 'include',
+    });
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -37,7 +39,9 @@ export async function exportGuests() {
 
 export async function exportTasks() {
   try {
-    const response = await fetch('/api/export/tasks');
+    const response = await fetch('/api/export/tasks', {
+      credentials: 'include',
+    });
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

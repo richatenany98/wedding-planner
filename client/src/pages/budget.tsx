@@ -73,7 +73,9 @@ export default function Budget({ weddingProfile }: BudgetProps) {
     queryKey: ['/api/budget', weddingProfile?.id],
     queryFn: () => 
       weddingProfile 
-        ? fetch(`/api/budget?weddingProfileId=${weddingProfile.id}`).then(res => res.json())
+        ? fetch(`/api/budget?weddingProfileId=${weddingProfile.id}`, {
+            credentials: 'include',
+          }).then(res => res.json())
         : Promise.resolve([]),
     enabled: !!weddingProfile,
   });
@@ -82,7 +84,9 @@ export default function Budget({ weddingProfile }: BudgetProps) {
     queryKey: ['/api/vendors', weddingProfile?.id],
     queryFn: () => 
       weddingProfile 
-        ? fetch(`/api/vendors?weddingProfileId=${weddingProfile.id}`).then(res => res.json())
+        ? fetch(`/api/vendors?weddingProfileId=${weddingProfile.id}`, {
+            credentials: 'include',
+          }).then(res => res.json())
         : Promise.resolve([]),
     enabled: !!weddingProfile,
   });
