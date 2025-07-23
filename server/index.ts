@@ -13,7 +13,10 @@ import bcrypt from "bcryptjs";
 import { setupVite, serveStatic, log } from "./vite";
 import { User } from "@shared/schema";
 import "./types"; // Import type declarations
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 
 // Security middleware
