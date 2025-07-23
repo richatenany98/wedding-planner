@@ -9,21 +9,14 @@ import path from "path";
 import fs from "fs";
 import { registerRoutes } from "./routes";
 import { storage } from "./storage";
-import bcrypt from "bcryptjs";
 import { setupVite, serveStatic, log } from "./vite";
-import { User } from "@shared/schema";
-import "./types"; // Import type declarations
+import "./types";
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express();
-export default app;
 
-// Healthcheck route
-app.get('/health', (req, res) => {
-  res.send('✅ Server is alive');
-});
+const app = express();
 
 // Security middleware
 app.use(helmet({
@@ -48,8 +41,8 @@ app.use(limiter);
 // CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-  ? 'https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net'
-  : ['http://localhost:5000', 'http://localhost:5173'],
+    ? ['https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net']
+    : ['http://localhost:5000', 'http://localhost:5173'],
   credentials: true,
 }));
 
@@ -67,20 +60,16 @@ app.use(session({
   name: 'weddingwizard.sid'
 }));
 
-// Body parsing
+// Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Uploads
+// File uploads
 const uploadsDir = path.join(process.cwd(), 'server', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const storageConfig = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
@@ -89,139 +78,126 @@ const storageConfig = multer.diskStorage({
 
 const upload = multer({
   storage: storageConfig,
-  limits: {
-    fileSize: 10 * 1024 * 1024,
-  },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF, DOC, and DOCX files are allowed'));
-    }
+    allowedTypes.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only PDF, DOC, and DOCX files are allowed'));
   }
 });
 
-// Auth middleware
-export const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+// Authentication middleware
+export const authenticateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     if (!req.session.userId) {
       return res.status(401).json({ error: "Authentication required" });
     }
+
     const user = await storage.getUser(req.session.userId);
     if (!user) {
-      req.session.destroy(() => { });
+      req.session.destroy(() => {});
       return res.status(401).json({ error: "Invalid session" });
     }
+
     req.user = user;
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
+    console.error("Authentication error:", error);
     res.status(500).json({ error: "Authentication failed" });
   }
 };
 
-export const authorizeUser = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+// Authorization middleware
+import { Request, Response, NextFunction } from "express";
+
+export const authorizeUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
+
     if (!user) {
       return res.status(401).json({ error: "Authentication required" });
     }
-    const requestedWeddingProfileId = req.query.weddingProfileId || req.body.weddingProfileId || req.params.weddingProfileId;
-    if (requestedWeddingProfileId && user.weddingProfileId !== parseInt(requestedWeddingProfileId as string)) {
+
+    const requestedWeddingProfileId =
+      req.query.weddingProfileId ||
+      req.body.weddingProfileId ||
+      req.params.weddingProfileId;
+
+    if (
+      requestedWeddingProfileId &&
+      user.weddingProfileId !== parseInt(requestedWeddingProfileId as string)
+    ) {
       return res.status(403).json({ error: "Access denied" });
     }
+
     next();
   } catch (error) {
-    console.error('Authorization error:', error);
+    console.error("Authorization error:", error);
     res.status(403).json({ error: "Access denied" });
   }
 };
 
-// Logging
+// Request logger
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
+  const originalJson = res.json;
+  res.json = function (body, ...args) {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-      log(logLine);
-    }
-  });
-
+    log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
+    return originalJson.apply(res, [body, ...args]);
+  };
   next();
 });
 
 (async () => {
   // Upload route
   app.post('/api/upload-contract', authenticateUser, upload.single('contract'), (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-      }
-      res.json({
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
-    } catch (error) {
-      console.error('File upload error:', error);
-      res.status(500).json({ error: 'File upload failed' });
-    }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    res.json({
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+    });
   });
 
   // Download route
   app.get('/api/download-contract/:filename', authenticateUser, (req, res) => {
-    try {
-      const filename = req.params.filename;
-      const filePath = path.join(uploadsDir, filename);
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'File not found' });
-      }
-      const originalName = filename.split('-').slice(2).join('-');
-      res.download(filePath, originalName);
-    } catch (error) {
-      console.error('File download error:', error);
-      res.status(500).json({ error: 'File download failed' });
-    }
+    const filePath = path.join(uploadsDir, req.params.filename);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
+    res.download(filePath, req.params.filename.split('-').slice(2).join('-'));
   });
 
+  // Register your API routes
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
+  // Global error handler
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {    const status = err.status || 500;
+    res.status(status).json({ message: err.message || "Internal Server Error" });
     throw err;
   });
 
+  // Serve Vite frontend
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    const distPath = path.resolve(__dirname, '../dist');
+    const distPath = path.join(__dirname, '../dist/public');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Listen on port
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   server.listen({ port, host: "0.0.0.0" }, () => {
-    log(`✅ Server started on port ${port}`);
+    log(`✅ Server running on port ${port}`);
   });
 })();
+
+// Healthcheck
+app.get('/health', (_req, res) => {
+  res.send('✅ Server is alive');
+});
