@@ -7,18 +7,36 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Get the base URL for API requests
+function getApiBaseUrl(): string {
+  // In development, use the proxy
+  if (import.meta.env.DEV) {
+    return '';
+  }
+  
+  // In production, use the same origin (the server serves both API and static files)
+  return '';
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const baseUrl = getApiBaseUrl();
+  const fullUrl = `${baseUrl}${url}`;
+  
+  console.log(`Making API request: ${method} ${fullUrl}`, data);
+  
+  const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
+  console.log(`API response: ${res.status} ${res.statusText}`);
+  
   await throwIfResNotOk(res);
   return res;
 }

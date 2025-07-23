@@ -41,22 +41,20 @@ function App() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage or session)
-    const savedUser = localStorage.getItem('user');
-    const savedProfile = localStorage.getItem('weddingProfile');
-    
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      // Only check for events if we have both user and profile
-      if (savedProfile) {
-        setWeddingProfile(JSON.parse(savedProfile));
+    // Check if user is already logged in by checking the server session
+    const checkAuthStatus = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/auth/me');
+        const userData = await response.json();
+        setUser(userData);
         
-        // Check if events exist for this profile
-        const checkEvents = async () => {
+        if (userData.weddingProfileId) {
           try {
-            const profile = JSON.parse(savedProfile);
+            const profileResponse = await apiRequest('GET', `/api/wedding-profile/${userData.weddingProfileId}`);
+            const profile = await profileResponse.json();
+            setWeddingProfile(profile);
+            
+            // Check if events exist for this profile
             const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
             const events = await eventsResponse.json();
             
@@ -65,34 +63,30 @@ function App() {
               setNeedsEventSetup(true);
             }
           } catch (error) {
-            console.error('Failed to fetch events:', error);
-            // If we get an auth error, clear the stored data
-            if (error instanceof Error && error.message.includes('401')) {
-              localStorage.removeItem('user');
-              localStorage.removeItem('weddingProfile');
-              setUser(null);
-              setWeddingProfile(null);
-            }
+            console.error('Failed to fetch wedding profile:', error);
           }
-        };
-        
-        checkEvents();
+        }
+      } catch (error) {
+        console.log('No active session found');
+        // Clear any stale localStorage data
+        localStorage.removeItem('user');
+        localStorage.removeItem('weddingProfile');
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
     
-    setIsLoading(false);
+    checkAuthStatus();
   }, []);
 
   const handleLogin = async (userData: User, options: { isNew: boolean } = { isNew: false }): Promise<void> => {
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
 
     if (userData.weddingProfileId) {
       try {
         const response = await apiRequest('GET', `/api/wedding-profile/${userData.weddingProfileId}`);
         const profile = await response.json();
         setWeddingProfile(profile);
-        localStorage.setItem('weddingProfile', JSON.stringify(profile));
 
         // Check if events exist for this profile
         const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
@@ -112,13 +106,11 @@ function App() {
 
   const handleOnboardingComplete = async (profile: WeddingProfile) => {
     setWeddingProfile(profile);
-    localStorage.setItem('weddingProfile', JSON.stringify(profile));
     
     // Update user with wedding profile ID
     if (user) {
       const updatedUser = { ...user, weddingProfileId: profile.id };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     
     // Check if we need to set up events
@@ -129,11 +121,17 @@ function App() {
     setNeedsEventSetup(false);
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setWeddingProfile(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('weddingProfile');
+  const handleLogout = async () => {
+    try {
+      await apiRequest('POST', '/api/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setWeddingProfile(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('weddingProfile');
+    }
   };
 
   if (isLoading) {

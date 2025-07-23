@@ -57,11 +57,14 @@ export default function Login({ onLogin }: LoginProps) {
     setError('');
     
     try {
+      console.log('Attempting login with:', { username: data.username });
       const response = await apiRequest('POST', '/api/auth/login', data);
       const user = await response.json();
+      console.log('Login successful:', user);
       onLogin(user, { isNew: false });
     } catch (err) {
-      setError('Invalid username or password');
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Invalid username or password');
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +75,7 @@ export default function Login({ onLogin }: LoginProps) {
     setError('');
     
     try {
+      console.log('Attempting registration with:', { username: data.username, name: data.name });
       const response = await apiRequest('POST', '/api/auth/register', {
         username: data.username,
         password: data.password,
@@ -79,9 +83,11 @@ export default function Login({ onLogin }: LoginProps) {
         role: 'bride'
       });
       const user = await response.json();
+      console.log('Registration successful:', user);
       onLogin(user, { isNew: true });
     } catch (err) {
-      setError('Registration failed. Username might already exist.');
+      console.error('Registration error:', err);
+      setError(err instanceof Error ? err.message : 'Registration failed. Username might already exist.');
     } finally {
       setIsLoading(false);
     }

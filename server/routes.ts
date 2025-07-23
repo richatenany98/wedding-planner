@@ -12,33 +12,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/clear-rate-limit", (req, res) => {
     res.json({ message: "Rate limit cleared" });
   });
+
+  // Test route
+  app.get("/api/test", (req, res) => {
+    res.json({ message: "API is working", timestamp: new Date().toISOString() });
+  });
+
   // Auth routes
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log('Login attempt received:', { username: req.body.username });
       const { username, password } = req.body;
       const user = await storage.getUserByUsername(username);
       
       if (!user || !(await bcrypt.compare(password, user.password))) {
+        console.log('Login failed: invalid credentials for username:', username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Set session
       req.session.userId = user.id;
+      console.log('Login successful for user:', user.id);
       
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error('Login error:', error);
       res.status(500).json({ error: "Login failed" });
     }
   });
 
   app.post("/api/auth/register", async (req, res) => {
     try {
+      console.log('Registration attempt received:', { username: req.body.username, name: req.body.name });
       const userData = insertUserSchema.parse(req.body);
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
+        console.log('Registration failed: username already exists:', userData.username);
         return res.status(400).json({ error: "Username already exists" });
       }
       
@@ -50,6 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set session
       req.session.userId = user.id;
+      console.log('Registration successful for user:', user.id);
       
       const { password: _, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
@@ -66,6 +79,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        req.session.destroy(() => {});
+        return res.status(401).json({ error: "Invalid session" });
+      }
+      
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Session check error:', error);
+      res.status(500).json({ error: "Session check failed" });
+    }
   });
 
   // Wedding profile routes

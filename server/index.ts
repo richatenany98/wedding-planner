@@ -41,9 +41,11 @@ app.use(limiter);
 // CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net']
+    ? ['https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net', 'https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net/']
     : ['http://localhost:5000', 'http://localhost:5173'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Sessions
@@ -52,10 +54,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && process.env.HTTPS === 'true',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'strict'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   },
   name: 'weddingwizard.sid'
 }));
@@ -143,6 +145,8 @@ export const authorizeUser = (req: Request, res: Response, next: NextFunction) =
 // Request logger
 app.use((req, res, next) => {
   const start = Date.now();
+  console.log(`Incoming request: ${req.method} ${req.path}`);
+  
   const originalJson = res.json;
   res.json = function (body, ...args) {
     const duration = Date.now() - start;
@@ -179,13 +183,30 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // 404 handler for API routes
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: 'API endpoint not found' });
+  });
+
   // Serve Vite frontend
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     const distPath = path.join(__dirname, '../dist/public');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    
+    // Serve static files only for non-API routes
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      express.static(distPath)(req, res, next);
+    });
+    
+    // Catch-all route for non-API routes (SPA routing)
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
