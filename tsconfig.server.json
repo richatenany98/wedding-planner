@@ -2,12 +2,14 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "module": "ESNext",
+    "rootDir": "server",
+    "module": "ES2020",
     "target": "ES2020",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": false
   },
   "include": [
     "server/**/*",
@@ -15,6 +17,7 @@
   ],
   "exclude": [
     "client/**/*",
-    "node_modules"
+    "node_modules",
+    "vite.config.ts"
   ]
-} 
+}
