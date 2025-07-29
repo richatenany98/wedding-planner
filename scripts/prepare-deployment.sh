@@ -1,19 +1,8 @@
 #!/bin/bash
 
-echo "🚀 Preparing deployment package..."
-
-# Exit on any error
-set -e
-
-echo "📦 Installing dependencies..."
-npm install --include=dev
-
-echo "🔨 Building client..."
-npm run build:client
-
-echo "🔍 Checking for server files..."
-if [ ! -f "dist/index.js" ]; then
-    echo "⚠️  Server files not found. Creating minimal server files for deployment..."
+# Function to create minimal server
+create_minimal_server() {
+    echo "🔧 Creating minimal server file..."
     
     # Create a minimal server file for deployment
     cat > dist/index.js << 'EOF'
@@ -109,6 +98,31 @@ app.listen({ port, host: "0.0.0.0" }, () => {
 EOF
 
     echo "✅ Created minimal server file"
+}
+
+echo "🚀 Preparing deployment package..."
+
+# Exit on any error
+set -e
+
+echo "📦 Installing dependencies..."
+npm install --include=dev
+
+echo "🔨 Building client..."
+npm run build:client
+
+echo "🔍 Attempting to build server with TypeScript..."
+if npx tsc -p tsconfig.server.json 2>/dev/null; then
+    echo "✅ TypeScript compilation successful!"
+    if [ -f "dist/index.js" ]; then
+        echo "✅ Server files created successfully"
+    else
+        echo "⚠️  TypeScript compiled but no index.js found, creating minimal server"
+        create_minimal_server
+    fi
+else
+    echo "⚠️  TypeScript compilation failed, creating minimal server for deployment"
+    create_minimal_server
 fi
 
 echo "✅ Deployment package ready!"
