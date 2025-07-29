@@ -24,7 +24,7 @@ jobs:
       - name: Build application
         run: npm run build:render
 
-      - name: Test build
+      - name: Verify deployment package
         run: npm run verify
 
       - name: Notify Render (optional)

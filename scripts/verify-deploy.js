@@ -12,12 +12,9 @@ if (!fs.existsSync(distPath)) {
   process.exit(1);
 }
 
-// Check for required files
+// Check for required files (minimal server approach)
 const requiredFiles = [
   'index.js',
-  'routes.js', 
-  'storage.js',
-  'db.js',
   'public/index.html'
 ];
 
@@ -53,10 +50,34 @@ if (emptyFiles.length > 0) {
   process.exit(1);
 }
 
+// Check for client assets
+const publicPath = path.join(distPath, 'public');
+if (fs.existsSync(publicPath)) {
+  const assets = fs.readdirSync(publicPath);
+  const assetsDir = path.join(publicPath, 'assets');
+  let hasAssets = false;
+  
+  // Check main public directory
+  hasAssets = assets.some(file => file.includes('.js') || file.includes('.css'));
+  
+  // Check assets subdirectory
+  if (!hasAssets && fs.existsSync(assetsDir)) {
+    const assetFiles = fs.readdirSync(assetsDir);
+    hasAssets = assetFiles.some(file => file.includes('.js') || file.includes('.css'));
+  }
+  
+  if (!hasAssets) {
+    console.warn('⚠️  No client assets found in public directory');
+  }
+}
+
 console.log('✅ All required files present and have content');
 console.log('✅ Build verification complete');
 console.log('\n📋 Deployment checklist:');
 console.log('   - [ ] Set DATABASE_URL environment variable');
 console.log('   - [ ] Set SESSION_SECRET environment variable');
 console.log('   - [ ] Set NODE_ENV=production');
-console.log('   - [ ] Ensure database is accessible from Render'); 
+console.log('   - [ ] Ensure database is accessible from Render');
+console.log('\n📁 Deployment files:');
+console.log('   - index.js (minimal server with all functionality)');
+console.log('   - public/ (client build files)'); 
