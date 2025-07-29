@@ -90,20 +90,20 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS
+// CORS - Updated for better session handling
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? ['https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net', 'https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net/']
         : ['http://localhost:5000', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
-// Sessions
+// Sessions - Updated configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production' && process.env.HTTPS === 'true',
@@ -159,11 +159,18 @@ async function getUser(id) {
     }
 }
 
-// Authentication middleware
+// Authentication middleware - Updated with better logging
 function authenticateUser(req, res, next) {
+    console.log('🔐 Auth check - Session ID:', req.sessionID);
+    console.log('🔐 Auth check - User ID:', req.session.userId);
+    console.log('🔐 Auth check - Session:', req.session);
+    
     if (!req.session.userId) {
+        console.log('❌ Authentication failed: No user ID in session');
         return res.status(401).json({ error: "Not authenticated" });
     }
+    
+    console.log('✅ Authentication successful for user:', req.session.userId);
     next();
 }
 
@@ -183,10 +190,17 @@ app.post("/api/auth/login", async (req, res) => {
         
         // Set session
         req.session.userId = user.id;
-        console.log('Login successful for user:', user.id);
-        
-        const { password: _, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ error: "Session error" });
+            }
+            console.log('Login successful for user:', user.id);
+            console.log('Session saved with ID:', req.sessionID);
+            
+            const { password: _, ...userWithoutPassword } = user;
+            res.json(userWithoutPassword);
+        });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: "Login failed" });
@@ -218,10 +232,16 @@ app.post("/api/auth/register", async (req, res) => {
         
         // Set session
         req.session.userId = user.id;
-        console.log('Registration successful for user:', user.id);
-        
-        const { password: _, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ error: "Session error" });
+            }
+            console.log('Registration successful for user:', user.id);
+            
+            const { password: _, ...userWithoutPassword } = user;
+            res.status(201).json(userWithoutPassword);
+        });
     } catch (error) {
         console.error("Registration error:", error);
         res.status(400).json({ error: "Registration failed" });
@@ -239,6 +259,9 @@ app.post("/api/auth/logout", (req, res) => {
 
 app.get("/api/auth/me", async (req, res) => {
     try {
+        console.log('Session check - Session ID:', req.sessionID);
+        console.log('Session check - User ID:', req.session.userId);
+        
         if (!req.session.userId) {
             return res.status(401).json({ error: "Not authenticated" });
         }
@@ -261,6 +284,7 @@ app.get("/api/auth/me", async (req, res) => {
 app.post("/api/wedding-profile", authenticateUser, async (req, res) => {
     try {
         console.log('Creating wedding profile:', req.body);
+        console.log('User ID from session:', req.session.userId);
         
         const {
             brideName,
