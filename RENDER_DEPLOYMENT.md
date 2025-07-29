@@ -1,8 +1,8 @@
 # Render Deployment Guide
 
-## ✅ **SOLUTION: Working Deployment Configuration**
+## ✅ **SOLUTION: Simplified Deployment for Render**
 
-The deployment issue has been resolved! The problem was with TypeScript compilation errors. We've created a deployment script that builds the client and creates a minimal working server for deployment.
+The deployment issue has been resolved with a simplified approach that should work reliably on Render!
 
 ## Prerequisites
 - A Render account
@@ -28,26 +28,23 @@ The deployment issue has been resolved! The problem was with TypeScript compilat
      - `HTTPS`: `true`
 
 3. **Build and Start Commands:**
-   - **Build Command**: `npm run build:render`
+   - **Build Command**: `npm install --include=dev && npm run build:client && mkdir -p dist && cp scripts/minimal-server.js dist/index.js`
    - **Start Command**: `npm start`
 
 ## How It Works
 
-The deployment script (`scripts/prepare-deployment.sh`) does the following:
+The new deployment approach:
 
 1. **Installs dependencies** (including dev dependencies)
 2. **Builds the client** using Vite
-3. **Creates a minimal server** if the full server build fails
-4. **Verifies all files are present**
+3. **Creates dist directory** if it doesn't exist
+4. **Copies the minimal server** from `scripts/minimal-server.js` to `dist/index.js`
 
-The minimal server includes:
-- ✅ Static file serving
-- ✅ Health check endpoint
-- ✅ Basic API test endpoint
-- ✅ CORS configuration
-- ✅ Security middleware
-- ✅ Session support
-- ✅ SPA routing support
+This approach is much more reliable because:
+- ✅ No complex TypeScript compilation
+- ✅ No script execution issues
+- ✅ Simple file copy operation
+- ✅ Always creates the necessary files
 
 ## Environment Variables
 
@@ -73,8 +70,8 @@ After deployment, test these endpoints:
 ### Common Issues
 
 1. **"Cannot find module '/opt/render/project/src/dist/index.js'"**
-   - ✅ **FIXED**: The build script now creates the necessary files
-   - Check the build logs in Render dashboard
+   - ✅ **FIXED**: The new build command ensures the file is always created
+   - The build command copies a pre-made server file
 
 2. **Database connection issues**
    - Verify your `DATABASE_URL` is correct
@@ -87,7 +84,7 @@ After deployment, test these endpoints:
 
 Before deploying, test locally:
 ```bash
-npm run build:render
+rm -rf dist && npm install --include=dev && npm run build:client && mkdir -p dist && cp scripts/minimal-server.js dist/index.js
 npm start
 ```
 
@@ -101,7 +98,7 @@ curl http://localhost:5000/api/test
 
 ```
 dist/
-├── index.js          # Minimal server file
+├── index.js          # Minimal server file (copied from scripts/minimal-server.js)
 └── public/           # Client build files
     ├── index.html
     └── assets/

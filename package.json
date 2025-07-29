@@ -9,6 +9,7 @@
     "build:server": "tsc -p tsconfig.server.json",
     "build:client": "vite build",
     "build:render": "./scripts/prepare-deployment.sh",
+
     "verify": "node scripts/verify-deploy.js",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",

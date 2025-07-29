@@ -1,14 +1,3 @@
-#!/bin/bash
-
-# Function to create minimal server
-create_minimal_server() {
-    echo "🔧 Creating minimal server file..."
-    
-    # Ensure dist directory exists
-    mkdir -p dist
-    
-    # Create a minimal server file for deployment
-    cat > dist/index.js << 'EOF'
 import 'dotenv/config';
 import express from "express";
 import cors from "cors";
@@ -97,69 +86,4 @@ app.get('*', (req, res) => {
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 app.listen({ port, host: "0.0.0.0" }, () => {
     console.log(`✅ Server running on port ${port}`);
-});
-EOF
-
-    echo "✅ Created minimal server file"
-}
-
-echo "🚀 Preparing deployment package for Render..."
-
-# Exit on any error
-set -e
-
-echo "📦 Installing dependencies..."
-npm install --include=dev
-
-echo "🔨 Building client..."
-npm run build:client
-
-echo "🔍 Checking current directory and files..."
-pwd
-ls -la
-
-echo "🔍 Checking if dist directory exists..."
-if [ -d "dist" ]; then
-    echo "✅ dist directory exists"
-    ls -la dist/
-else
-    echo "❌ dist directory not found, creating it"
-    mkdir -p dist
-fi
-
-echo "🔍 Attempting to build server with TypeScript..."
-if npx tsc -p tsconfig.server.json 2>/dev/null; then
-    echo "✅ TypeScript compilation successful!"
-    if [ -f "dist/index.js" ]; then
-        echo "✅ Server files created successfully"
-        ls -la dist/
-    else
-        echo "⚠️  TypeScript compiled but no index.js found, creating minimal server"
-        create_minimal_server
-    fi
-else
-    echo "⚠️  TypeScript compilation failed, creating minimal server for deployment"
-    create_minimal_server
-fi
-
-echo "🔍 Final verification..."
-if [ -f "dist/index.js" ]; then
-    echo "✅ dist/index.js exists"
-    ls -la dist/index.js
-else
-    echo "❌ dist/index.js still missing, creating it now"
-    create_minimal_server
-fi
-
-if [ -f "dist/public/index.html" ]; then
-    echo "✅ dist/public/index.html exists"
-else
-    echo "❌ dist/public/index.html missing"
-    exit 1
-fi
-
-echo "✅ Deployment package ready!"
-echo "📁 Final files in dist:"
-ls -la dist/
-echo "📁 Files in dist/public:"
-ls -la dist/public/ 
+}); 
