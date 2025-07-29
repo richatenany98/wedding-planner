@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import session from "express-session";
 import path from "path";
 import { fileURLToPath } from 'url';
+import bcrypt from "bcryptjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,9 +70,94 @@ app.get('/health', (_req, res) => {
     res.send('✅ Server is alive');
 });
 
-// API placeholder
+// API test route
 app.get('/api/test', (_req, res) => {
     res.json({ message: "API is working", timestamp: new Date().toISOString() });
+});
+
+// Authentication routes
+app.post("/api/auth/login", async (req, res) => {
+    try {
+        console.log('Login attempt received:', { username: req.body.username });
+        const { username, password } = req.body;
+        
+        // For now, use a simple authentication
+        // In production, you'd want to connect to your database
+        if (username === 'admin' && password === 'password') {
+            // Set session
+            req.session.userId = 1;
+            console.log('Login successful for user:', 1);
+            
+            res.json({
+                id: 1,
+                username: 'admin',
+                name: 'Admin User',
+                email: 'admin@example.com'
+            });
+        } else {
+            console.log('Login failed: invalid credentials for username:', username);
+            res.status(401).json({ error: "Invalid credentials" });
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: "Login failed" });
+    }
+});
+
+app.post("/api/auth/register", async (req, res) => {
+    try {
+        console.log('Registration attempt received:', { username: req.body.username, name: req.body.name });
+        const { username, password, name, email } = req.body;
+        
+        // For now, just return success
+        // In production, you'd want to save to database
+        const user = {
+            id: 1,
+            username,
+            name,
+            email
+        };
+        
+        // Set session
+        req.session.userId = user.id;
+        console.log('Registration successful for user:', user.id);
+        
+        res.status(201).json(user);
+    } catch (error) {
+        console.error("Registration error:", error);
+        res.status(400).json({ error: "Registration failed" });
+    }
+});
+
+app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: "Logout failed" });
+        }
+        res.json({ message: "Logged out successfully" });
+    });
+});
+
+app.get("/api/auth/me", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ error: "Not authenticated" });
+        }
+        
+        // For now, return a mock user
+        // In production, you'd fetch from database
+        const user = {
+            id: req.session.userId,
+            username: 'admin',
+            name: 'Admin User',
+            email: 'admin@example.com'
+        };
+        
+        res.json(user);
+    } catch (error) {
+        console.error('Session check error:', error);
+        res.status(500).json({ error: "Session check failed" });
+    }
 });
 
 // Catch-all route for SPA
