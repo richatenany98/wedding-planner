@@ -3,7 +3,7 @@ services:
     name: wedding-wizard
     env: node
     nodeVersion: 18
-    buildCommand: npm install --include=dev && npm run build:client && mkdir -p dist && cp scripts/minimal-server.js dist/index.js
+    buildCommand: npm install --include=dev && npm run build:client && mkdir -p dist && cp render-server.js dist/index.js
     startCommand: npm start
     envVars:
       - key: NODE_ENV

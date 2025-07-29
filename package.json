@@ -8,7 +8,7 @@
     "build": "npm run build:client && npm run build:server",
     "build:server": "tsc -p tsconfig.server.json",
     "build:client": "vite build",
-    "build:render": "./scripts/prepare-deployment.sh",
+    "build:render": "./build-render.sh",
 
     "verify": "node scripts/verify-deploy.js",
     "start": "NODE_ENV=production node dist/index.js",
