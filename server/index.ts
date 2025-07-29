@@ -7,7 +7,7 @@ import session from "express-session";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from './routes';
 import { storage } from "./storage";
 import { setupVite, serveStatic, log } from "./vite";
 import "./types";
