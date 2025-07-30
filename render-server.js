@@ -70,7 +70,17 @@ async function ensureUserExists() {
 
 const app = express();
 
-// Security middleware
+// Security middleware - Enforce HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        if (req.headers['x-forwarded-proto'] !== 'https') {
+            return res.redirect(`https://${req.headers.host}${req.url}`);
+        }
+        next();
+    });
+}
+
+// Security headers
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -84,9 +94,9 @@ app.use(helmet({
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 1000,
-    message: "Too many requests from this IP, please try again later.",
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
 
@@ -149,10 +159,11 @@ async function getUserByUsername(username) {
         );
         const user = result.rows[0];
         if (user) {
-            // Transform snake_case to camelCase for frontend
+            // Transform snake_case to camelCase for frontend, but preserve password for auth
             return {
                 id: user.id,
                 username: user.username,
+                password: user.password, // Keep password for authentication
                 name: user.name,
                 role: user.role,
                 weddingProfileId: user.wedding_profile_id, // Transform this field
@@ -215,10 +226,12 @@ function authenticateUser(req, res, next) {
 app.post("/api/auth/login", async (req, res) => {
     try {
         console.log('Login attempt received:', { username: req.body.username });
+        console.log('Full request body:', req.body);
         const { username, password } = req.body;
         
         // Get user from database
         const user = await getUserByUsername(username);
+        console.log('User found from database:', user ? { id: user.id, username: user.username, hasPassword: !!user.password } : null);
         
         if (!user || !(await bcrypt.compare(password, user.password))) {
             console.log('Login failed: invalid credentials for username:', username);
@@ -236,6 +249,7 @@ app.post("/api/auth/login", async (req, res) => {
             console.log('Session saved with ID:', req.sessionID);
             
             const { password: _, ...userWithoutPassword } = user;
+            console.log('Sending user data to frontend:', userWithoutPassword);
             res.json(userWithoutPassword);
         });
     } catch (error) {
