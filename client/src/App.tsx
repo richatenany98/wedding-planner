@@ -20,6 +20,21 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 
 function Router({ weddingProfile }: { weddingProfile: WeddingProfile }) {
+  // Ensure weddingProfile exists before rendering any routes
+  if (!weddingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="loading-spinner h-16 w-16 mx-auto mb-6"></div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            Loading...
+          </h2>
+          <p className="text-neutral-600">Preparing your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
       <Route path="/" component={() => <Dashboard weddingProfile={weddingProfile} />} />
@@ -232,6 +247,21 @@ export default function App() {
             return <EventLogistics weddingProfile={weddingProfile} onComplete={handleEventSetupComplete} />;
           } else {
             console.log('📱 Rendering: Dashboard');
+            // Additional safety check to ensure weddingProfile exists
+            if (!weddingProfile) {
+              console.log('📱 Wedding profile is null, showing loading...');
+              return (
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="loading-spinner h-16 w-16 mx-auto mb-6"></div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                      Loading...
+                    </h2>
+                    <p className="text-neutral-600">Preparing your dashboard...</p>
+                  </div>
+                </div>
+              );
+            }
             return (
               <div className="min-h-screen flex flex-col lg:flex-row">
                 <Sidebar weddingProfile={weddingProfile} onLogout={handleLogout} />
