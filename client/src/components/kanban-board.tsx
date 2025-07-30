@@ -918,7 +918,16 @@ export function KanbanBoard({ weddingProfile }: KanbanBoardProps) {
                                 <div className="flex items-center space-x-1">
                                   <Calendar className="w-3 h-3 text-rose-400" />
                                   <span className="text-xs text-rose-500 font-medium">
-                                    {new Date(task.dueDate).toLocaleDateString()}
+                                    {(() => {
+                                      try {
+                                        if (!task.dueDate) return 'No date';
+                                        const date = new Date(task.dueDate);
+                                        return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString();
+                                      } catch (error) {
+                                        console.error('Error formatting due date:', error);
+                                        return 'Invalid Date';
+                                      }
+                                    })()}
                                   </span>
                                 </div>
                               )}

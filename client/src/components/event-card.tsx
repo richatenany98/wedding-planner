@@ -53,12 +53,27 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
 
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+    try {
+      if (!dateString) {
+        console.warn('Date string is undefined or empty');
+        return 'Invalid Date';
+      }
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date string:', dateString);
+        return 'Invalid Date';
+      }
+      
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, 'dateString:', dateString);
+      return 'Invalid Date';
+    }
   };
 
   return (
