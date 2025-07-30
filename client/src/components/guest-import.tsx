@@ -76,7 +76,7 @@ export function GuestImport() {
   // Get the bride's last name as default side
   const getDefaultSide = () => {
     if (!weddingProfile) return "";
-    const brideLastName = weddingProfile.brideName.split(' ').pop() || "";
+    const brideLastName = weddingProfile?.brideName?.split(' ').pop() || "";
     return brideLastName;
   };
 
@@ -193,11 +193,11 @@ Amit Patel, amit@email.com, 9876543212`}
                         <SelectContent>
                           {weddingProfile && (
                             <>
-                              <SelectItem value={weddingProfile.brideName.split(' ').pop() || ""}>
-                                {weddingProfile.brideName.split(' ').pop()}
+                              <SelectItem value={weddingProfile?.brideName?.split(' ').pop() || ""}>
+                                {weddingProfile?.brideName?.split(' ').pop() || 'Bride'}
                               </SelectItem>
-                              <SelectItem value={weddingProfile.groomName.split(' ').pop() || ""}>
-                                {weddingProfile.groomName.split(' ').pop()}
+                              <SelectItem value={weddingProfile?.groomName?.split(' ').pop() || ""}>
+                                {weddingProfile?.groomName?.split(' ').pop() || 'Groom'}
                               </SelectItem>
                             </>
                           )}

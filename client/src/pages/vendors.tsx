@@ -80,8 +80,8 @@ export default function Vendors({ weddingProfile }: VendorsProps) {
   const getPaymentOptions = () => {
     if (!weddingProfile) return [];
     
-    const brideLastName = weddingProfile.brideName.split(' ').pop() || 'Bride';
-    const groomLastName = weddingProfile.groomName.split(' ').pop() || 'Groom';
+    const brideLastName = weddingProfile?.brideName?.split(' ').pop() || 'Bride';
+    const groomLastName = weddingProfile?.groomName?.split(' ').pop() || 'Groom';
     
     return [
       { value: 'bride', label: `${brideLastName}` },

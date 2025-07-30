@@ -224,8 +224,8 @@ export default function Budget({ weddingProfile }: BudgetProps) {
 
   // Get bride and groom last names for payment options
   const getPaymentOptions = () => {
-    const brideLastName = weddingProfile.brideName.split(' ').pop() || 'Bride';
-    const groomLastName = weddingProfile.groomName.split(' ').pop() || 'Groom';
+    const brideLastName = weddingProfile?.brideName?.split(' ').pop() || 'Bride';
+    const groomLastName = weddingProfile?.groomName?.split(' ').pop() || 'Groom';
     
     return [
       { value: 'bride', label: brideLastName },
@@ -484,7 +484,7 @@ export default function Budget({ weddingProfile }: BudgetProps) {
               <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <DollarSign className="text-pink-600" size={24} />
               </div>
-              <p className="text-sm text-neutral-600 mb-1">{weddingProfile.brideName.split(' ').pop() || 'Bride'} Family</p>
+              <p className="text-sm text-neutral-600 mb-1">{weddingProfile?.brideName?.split(' ').pop() || 'Bride'} Family</p>
               <p className="text-2xl font-bold text-pink-600">
                 {formatCurrency(budgetItems
                   .filter(item => item.paidBy === 'bride')
@@ -496,7 +496,7 @@ export default function Budget({ weddingProfile }: BudgetProps) {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <DollarSign className="text-blue-600" size={24} />
               </div>
-              <p className="text-sm text-neutral-600 mb-1">{weddingProfile.groomName.split(' ').pop() || 'Groom'} Family</p>
+              <p className="text-sm text-neutral-600 mb-1">{weddingProfile?.groomName?.split(' ').pop() || 'Groom'} Family</p>
               <p className="text-2xl font-bold text-blue-600">
                 {formatCurrency(budgetItems
                   .filter(item => item.paidBy === 'groom')

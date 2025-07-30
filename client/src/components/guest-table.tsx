@@ -198,8 +198,8 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
     
     // Different colors for each side
     if (weddingProfile) {
-      const brideLastName = weddingProfile.brideName.split(' ').pop()?.toLowerCase();
-      const groomLastName = weddingProfile.groomName.split(' ').pop()?.toLowerCase();
+      const brideLastName = weddingProfile?.brideName?.split(' ').pop()?.toLowerCase() || '';
+      const groomLastName = weddingProfile?.groomName?.split(' ').pop()?.toLowerCase() || '';
       
       if (sideKey === brideLastName) {
         return "bg-pink-100 text-pink-800 border-pink-200";
@@ -320,18 +320,18 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
           <>
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-pink-100 shadow-lg hover:shadow-xl transition-all duration-300">
               <h4 className="text-sm font-semibold text-pink-700 mb-3">
-                {weddingProfile.brideName.split(' ').pop()}
+                {weddingProfile?.brideName?.split(' ').pop() || 'Bride'}
               </h4>
               <p className="text-3xl font-bold text-pink-900">
-                {stats.sideCounts[weddingProfile.brideName.split(' ').pop() || ""] || 0}
+                {stats.sideCounts[weddingProfile?.brideName?.split(' ').pop() || ""] || 0}
               </p>
             </div>
             <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
               <h4 className="text-sm font-semibold text-blue-700 mb-3">
-                {weddingProfile.groomName.split(' ').pop()}
+                {weddingProfile?.groomName?.split(' ').pop() || 'Groom'}
               </h4>
               <p className="text-3xl font-bold text-blue-900">
-                {stats.sideCounts[weddingProfile.groomName.split(' ').pop() || ""] || 0}
+                {stats.sideCounts[weddingProfile?.groomName?.split(' ').pop() || ""] || 0}
               </p>
             </div>
           </>
@@ -378,11 +378,11 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
               <SelectItem value="all">All Sides</SelectItem>
               {weddingProfile && (
                 <>
-                  <SelectItem value={weddingProfile.brideName.split(' ').pop() || ""}>
-                    {weddingProfile.brideName.split(' ').pop()}
+                  <SelectItem value={weddingProfile?.brideName?.split(' ').pop() || ""}>
+                    {weddingProfile?.brideName?.split(' ').pop() || 'Bride'}
                   </SelectItem>
-                  <SelectItem value={weddingProfile.groomName.split(' ').pop() || ""}>
-                    {weddingProfile.groomName.split(' ').pop()}
+                  <SelectItem value={weddingProfile?.groomName?.split(' ').pop() || ""}>
+                    {weddingProfile?.groomName?.split(' ').pop() || 'Groom'}
                   </SelectItem>
                 </>
               )}
@@ -537,11 +537,11 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
                         <SelectContent>
                           {weddingProfile && (
                             <>
-                              <SelectItem value={weddingProfile.brideName.split(' ').pop() || ""}>
-                                {weddingProfile.brideName.split(' ').pop()}
+                              <SelectItem value={weddingProfile?.brideName?.split(' ').pop() || ""}>
+                                {weddingProfile?.brideName?.split(' ').pop() || 'Bride'}
                               </SelectItem>
-                              <SelectItem value={weddingProfile.groomName.split(' ').pop() || ""}>
-                                {weddingProfile.groomName.split(' ').pop()}
+                              <SelectItem value={weddingProfile?.groomName?.split(' ').pop() || ""}>
+                                {weddingProfile?.groomName?.split(' ').pop() || 'Groom'}
                               </SelectItem>
                             </>
                           )}
