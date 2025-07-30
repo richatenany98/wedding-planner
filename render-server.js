@@ -434,6 +434,10 @@ app.post("/api/events", authenticateUser, async (req, res) => {
 
 app.get("/api/events", authenticateUser, async (req, res) => {
     try {
+        console.log('📅 Events request received');
+        console.log('📅 Query params:', req.query);
+        console.log('📅 Session user ID:', req.session.userId);
+        
         const { weddingProfileId } = req.query;
         
         let query = 'SELECT * FROM events';
@@ -444,7 +448,10 @@ app.get("/api/events", authenticateUser, async (req, res) => {
             params.push(weddingProfileId);
         }
         
+        console.log('📅 Executing query:', query, 'with params:', params);
         const result = await pool.query(query, params);
+        console.log('📅 Found events:', result.rows.length);
+        
         res.json(result.rows);
     } catch (error) {
         console.error("Events fetch error:", error);

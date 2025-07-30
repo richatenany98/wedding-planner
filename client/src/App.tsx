@@ -139,6 +139,10 @@ export default function App() {
     // Check if events exist for this profile
     try {
       console.log('📅 Checking for existing events...');
+      
+      // Small delay to ensure session is properly established
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
       const events = await eventsResponse.json();
       console.log('📅 Found events:', events);
@@ -153,6 +157,7 @@ export default function App() {
       }
     } catch (error) {
       console.error('❌ Failed to check events:', error);
+      console.log('📅 Assuming no events exist, showing event setup');
       // If we can't check events, assume we need event setup
       setNeedsEventSetup(true);
     }
