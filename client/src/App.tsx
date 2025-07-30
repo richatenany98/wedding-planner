@@ -70,9 +70,18 @@ export default function App() {
           try {
             const profileResponse = await apiRequest('GET', `/api/wedding-profile/${userData.weddingProfileId}`);
             const profile = await profileResponse.json();
+            
+            // Validate that profile has an ID
+            if (!profile || !profile.id) {
+              console.error('❌ Invalid profile: missing ID', profile);
+              setShowOnboarding(true);
+              return;
+            }
+            
             setWeddingProfile(profile);
             
             // Check if events exist for this profile
+            console.log('📅 Checking events for profile ID:', profile.id);
             const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
             const events = await eventsResponse.json();
             
@@ -86,8 +95,7 @@ export default function App() {
             setShowOnboarding(true);
           }
         } else {
-          // User has no wedding profile, show onboarding
-          setShowOnboarding(true);
+          setShowOnboarding(true); // User has no wedding profile, show onboarding
         }
       } catch (error) {
         console.log('🔍 No active session found - user needs to login');
@@ -112,9 +120,18 @@ export default function App() {
         const response = await apiRequest('GET', `/api/wedding-profile/${userData.weddingProfileId}`);
         const profile = await response.json();
         console.log('📋 Wedding profile fetched:', profile);
+        
+        // Validate that profile has an ID
+        if (!profile || !profile.id) {
+          console.error('❌ Invalid profile: missing ID', profile);
+          setShowOnboarding(true);
+          return;
+        }
+        
         setWeddingProfile(profile);
 
         // Check if events exist for this profile
+        console.log('📅 Checking events for profile ID:', profile.id);
         const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
         const events = await eventsResponse.json();
 
@@ -139,6 +156,14 @@ export default function App() {
 
   const handleOnboardingComplete = async (profile: WeddingProfile) => {
     console.log('🎉 Onboarding completed! Profile:', profile);
+    console.log('🎉 Profile ID:', profile.id);
+    
+    // Validate that profile has an ID
+    if (!profile || !profile.id) {
+      console.error('❌ Invalid profile: missing ID', profile);
+      return;
+    }
+    
     setIsRouting(true); // Show loading while routing
     setWeddingProfile(profile);
     
@@ -160,6 +185,7 @@ export default function App() {
     // Check if events exist for this profile
     try {
       console.log('📅 Checking for existing events...');
+      console.log('📅 Using profile ID:', profile.id);
       
       // Small delay to ensure session is properly established
       await new Promise(resolve => setTimeout(resolve, 500));
