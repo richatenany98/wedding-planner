@@ -152,13 +152,25 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const queryClient = useQueryClient();
 
+  // Ensure weddingProfile exists before rendering
+  if (!weddingProfile) {
+    return (
+      <div className="container-wedding p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="loading-spinner h-12 w-12"></div>
+        </div>
+      </div>
+    );
+  }
+
   // Get default date within wedding timeframe
   const getDefaultDate = () => {
     try {
-      // Validate that the dates exist and are valid
-      if (!weddingProfile.weddingStartDate || !weddingProfile.weddingEndDate) {
-        console.warn('Wedding dates not available, using today as default');
-        return new Date().toISOString().split("T")[0];
+      // Validate that the wedding profile exists and has dates
+      if (!weddingProfile || !weddingProfile.weddingStartDate || !weddingProfile.weddingEndDate) {
+        console.warn('Wedding profile or dates not available, using today as default');
+        const today = new Date();
+        return today.toISOString().split("T")[0];
       }
 
       const startDate = new Date(weddingProfile.weddingStartDate);
@@ -168,7 +180,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
       // Check if the dates are valid
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         console.warn('Invalid wedding dates, using today as default');
-        return new Date().toISOString().split("T")[0];
+        return today.toISOString().split("T")[0];
       }
 
       // If today is within the wedding timeframe, use today
@@ -181,7 +193,12 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
     } catch (error) {
       console.error('Error getting default date:', error);
       // Fallback to today's date
-      return new Date().toISOString().split("T")[0];
+      try {
+        return new Date().toISOString().split("T")[0];
+      } catch (fallbackError) {
+        console.error('Error in fallback date:', fallbackError);
+        return '2024-12-31'; // Hardcoded fallback
+      }
     }
   };
 
@@ -250,7 +267,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
           location: "",
           icon: "",
           color: "orange",
-          guestCount: weddingProfile.guestCount || 0,
+          guestCount: weddingProfile?.guestCount || 0,
         });
       },
   });
@@ -274,7 +291,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         location: "",
         icon: "",
         color: "orange",
-        guestCount: weddingProfile.guestCount || 0,
+        guestCount: weddingProfile?.guestCount || 0,
       });
     },
   });
@@ -594,7 +611,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
         >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{selectedEvent.name}</DialogTitle>
+              <DialogTitle>{selectedEvent?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -603,7 +620,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                   <p className="text-sm text-gray-600">
                     {(() => {
                       try {
-                        const eventDate = new Date(selectedEvent.date);
+                        const eventDate = new Date(selectedEvent?.date || '');
                         return isNaN(eventDate.getTime()) ? 'Invalid Date' : eventDate.toLocaleDateString(
                           "en-US",
                           {
@@ -620,23 +637,23 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                     })()}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {selectedEvent.time}
+                    {selectedEvent?.time}
                   </p>
                 </div>
                 <div>
                   <h4 className="font-medium mb-2">Location</h4>
                   <p className="text-sm text-gray-600">
-                    {selectedEvent.location}
+                    {selectedEvent?.location}
                   </p>
                 </div>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Guest Count</h4>
                 <p className="text-sm text-gray-600">
-                  {selectedEvent.guestCount} guests expected
+                  {selectedEvent?.guestCount} guests expected
                 </p>
               </div>
-              {selectedEvent.description && (
+              {selectedEvent?.description && (
                 <div>
                   <h4 className="font-medium mb-2">Description</h4>
                   <p className="text-sm text-gray-600">
@@ -649,7 +666,9 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                   variant="outline"
                   onClick={() => {
                     setSelectedEvent(null);
-                    handleEdit(selectedEvent);
+                    if (selectedEvent) {
+                      handleEdit(selectedEvent);
+                    }
                   }}
                 >
                   Edit Event
@@ -658,7 +677,9 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                   variant="destructive"
                   onClick={() => {
                     setSelectedEvent(null);
-                    handleDelete(selectedEvent);
+                    if (selectedEvent) {
+                      handleDelete(selectedEvent);
+                    }
                   }}
                 >
                   Delete Event
@@ -685,7 +706,7 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
               location: "",
               icon: "",
               color: "orange",
-              guestCount: weddingProfile.guestCount || 0,
+              guestCount: weddingProfile?.guestCount || 0,
             });
           }
         }}
