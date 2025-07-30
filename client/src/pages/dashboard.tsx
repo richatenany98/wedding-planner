@@ -154,17 +154,35 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
 
   // Get default date within wedding timeframe
   const getDefaultDate = () => {
-    const startDate = new Date(weddingProfile.weddingStartDate);
-    const endDate = new Date(weddingProfile.weddingEndDate);
-    const today = new Date();
+    try {
+      // Validate that the dates exist and are valid
+      if (!weddingProfile.weddingStartDate || !weddingProfile.weddingEndDate) {
+        console.warn('Wedding dates not available, using today as default');
+        return new Date().toISOString().split("T")[0];
+      }
 
-    // If today is within the wedding timeframe, use today
-    if (today >= startDate && today <= endDate) {
-      return today.toISOString().split("T")[0];
+      const startDate = new Date(weddingProfile.weddingStartDate);
+      const endDate = new Date(weddingProfile.weddingEndDate);
+      const today = new Date();
+
+      // Check if the dates are valid
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.warn('Invalid wedding dates, using today as default');
+        return new Date().toISOString().split("T")[0];
+      }
+
+      // If today is within the wedding timeframe, use today
+      if (today >= startDate && today <= endDate) {
+        return today.toISOString().split("T")[0];
+      }
+
+      // Otherwise, use the start date
+      return startDate.toISOString().split("T")[0];
+    } catch (error) {
+      console.error('Error getting default date:', error);
+      // Fallback to today's date
+      return new Date().toISOString().split("T")[0];
     }
-
-    // Otherwise, use the start date
-    return startDate.toISOString().split("T")[0];
   };
 
   const form = useForm<EventFormData>({
@@ -321,9 +339,21 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
 
   // Ensure events is always an array and sort chronologically
   const sortedEvents = [...(Array.isArray(events) ? events : [])].sort((a, b) => {
-    // First sort by date
-    const dateA = new Date(a.date + "T00:00:00").getTime();
-    const dateB = new Date(b.date + "T00:00:00").getTime();
+    // First sort by date with validation
+    let dateA, dateB;
+    try {
+      dateA = new Date(a.date + "T00:00:00").getTime();
+      dateB = new Date(b.date + "T00:00:00").getTime();
+      
+      // Check if dates are valid
+      if (isNaN(dateA) || isNaN(dateB)) {
+        console.warn('Invalid date found in events:', { a: a.date, b: b.date });
+        return 0; // Don't change order if dates are invalid
+      }
+    } catch (error) {
+      console.error('Error parsing event dates:', error);
+      return 0; // Don't change order if there's an error
+    }
 
     if (dateA !== dateB) {
       return dateA - dateB;
@@ -331,6 +361,8 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
 
     // If dates are the same, sort by time
     const parseTime = (timeStr: string) => {
+      if (!timeStr) return 0;
+      
       // Extract first time from strings like "11AM - 1PM" or "6:00 PM - 11:30 PM"
       const match = timeStr.match(
         /(\d{1,2}):?(\d{0,2})\s*(AM|PM)/i,
@@ -436,18 +468,42 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                       <div className="flex-shrink-0 w-24 text-center">
                         <div className="w-12 h-12 wedding-gradient-rose rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
                           <span className="text-white font-bold text-lg">
-                            {new Date(event.date + "T00:00:00").getDate()}
+                            {(() => {
+                              try {
+                                const eventDate = new Date(event.date + "T00:00:00");
+                                return isNaN(eventDate.getTime()) ? '?' : eventDate.getDate();
+                              } catch (error) {
+                                console.error('Error parsing event date:', error);
+                                return '?';
+                              }
+                            })()}
                           </span>
                         </div>
                         <div className="text-sm font-semibold text-neutral-700">
-                          {new Date(event.date + "T00:00:00").toLocaleDateString("en-US", {
-                            month: "short",
-                          })}
+                          {(() => {
+                            try {
+                              const eventDate = new Date(event.date + "T00:00:00");
+                              return isNaN(eventDate.getTime()) ? 'Invalid' : eventDate.toLocaleDateString("en-US", {
+                                month: "short",
+                              });
+                            } catch (error) {
+                              console.error('Error parsing event date:', error);
+                              return 'Invalid';
+                            }
+                          })()}
                         </div>
                         <div className="text-xs text-neutral-500 font-medium">
-                          {new Date(event.date + "T00:00:00").toLocaleDateString("en-US", {
-                            weekday: "short",
-                          })}
+                          {(() => {
+                            try {
+                              const eventDate = new Date(event.date + "T00:00:00");
+                              return isNaN(eventDate.getTime()) ? 'Date' : eventDate.toLocaleDateString("en-US", {
+                                weekday: "short",
+                              });
+                            } catch (error) {
+                              console.error('Error parsing event date:', error);
+                              return 'Date';
+                            }
+                          })()}
                         </div>
                       </div>
 
@@ -545,15 +601,23 @@ export default function Dashboard({ weddingProfile }: DashboardProps) {
                 <div>
                   <h4 className="font-medium mb-2">Date & Time</h4>
                   <p className="text-sm text-gray-600">
-                    {new Date(selectedEvent.date).toLocaleDateString(
-                      "en-US",
-                      {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      },
-                    )}
+                    {(() => {
+                      try {
+                        const eventDate = new Date(selectedEvent.date);
+                        return isNaN(eventDate.getTime()) ? 'Invalid Date' : eventDate.toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        );
+                      } catch (error) {
+                        console.error('Error parsing selected event date:', error);
+                        return 'Invalid Date';
+                      }
+                    })()}
                   </p>
                   <p className="text-sm text-gray-600">
                     {selectedEvent.time}
