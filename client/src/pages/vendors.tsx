@@ -592,7 +592,7 @@ export default function Vendors({ weddingProfile }: VendorsProps) {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    vendors.map((vendor) => {
+                    (Array.isArray(vendors) ? vendors : []).map((vendor) => {
                       return (
                         <TableRow key={vendor.id} className="hover:bg-rose-50/30 transition-colors">
                           <TableCell className="font-medium text-rose-800">{vendor.name}</TableCell>

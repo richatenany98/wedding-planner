@@ -241,7 +241,10 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
 
   // Filter and search logic
   const filteredGuests = useMemo(() => {
-    const filtered = guests.filter((guest) => {
+    // Ensure guests is an array
+    const guestsArray = Array.isArray(guests) ? guests : [];
+    
+    const filtered = guestsArray.filter((guest) => {
       // Search filter
       const matchesSearch = searchQuery === "" || 
         guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -288,20 +291,23 @@ export function GuestTable({ weddingProfile }: GuestTableProps) {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const sideCounts = guests.reduce((acc, guest) => {
+    // Ensure guests is an array
+    const guestsArray = Array.isArray(guests) ? guests : [];
+    
+    const sideCounts = guestsArray.reduce((acc, guest) => {
       const side = guest.side;
       acc[side] = (acc[side] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const rsvpCounts = guests.reduce((acc, guest) => {
+    const rsvpCounts = guestsArray.reduce((acc, guest) => {
       const status = guest.rsvpStatus || "Pending";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     return {
-      total: guests.length,
+      total: guestsArray.length,
       sideCounts,
       rsvpCounts,
     };

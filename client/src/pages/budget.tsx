@@ -192,7 +192,7 @@ export default function Budget({ weddingProfile }: BudgetProps) {
   };
 
   // Sync budget items with vendor deposits
-  const syncedBudgetItems = budgetItems.map(budgetItem => {
+  const syncedBudgetItems = (Array.isArray(budgetItems) ? budgetItems : []).map(budgetItem => {
     const matchingVendor = vendors.find(vendor => vendor.name === budgetItem.vendor);
     const depositAmount = matchingVendor?.securityDeposit || 0;
     

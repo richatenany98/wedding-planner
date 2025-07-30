@@ -497,6 +497,355 @@ app.get("/api/events", authenticateUser, async (req, res) => {
     }
 });
 
+// Guest routes
+app.post("/api/guests", authenticateUser, async (req, res) => {
+    try {
+        console.log('Creating guest:', req.body);
+        
+        const {
+            name,
+            email,
+            phone,
+            side,
+            rsvpStatus = 'pending',
+            weddingProfileId
+        } = req.body;
+        
+        const result = await pool.query(
+            `INSERT INTO guests 
+            (name, email, phone, side, rsvp_status, wedding_profile_id) 
+            VALUES ($1, $2, $3, $4, $5, $6) 
+            RETURNING *`,
+            [name, email, phone, side, rsvpStatus, weddingProfileId]
+        );
+        
+        const guest = result.rows[0];
+        console.log('Guest created:', guest.id);
+        res.status(201).json(guest);
+    } catch (error) {
+        console.error("Guest creation error:", error);
+        res.status(400).json({ error: "Failed to create guest" });
+    }
+});
+
+app.get("/api/guests", authenticateUser, async (req, res) => {
+    try {
+        console.log('👥 Guests request received');
+        console.log('👥 Query params:', req.query);
+        
+        const { weddingProfileId } = req.query;
+        
+        let query = 'SELECT * FROM guests';
+        let params = [];
+        
+        if (weddingProfileId) {
+            query += ' WHERE wedding_profile_id = $1';
+            params.push(weddingProfileId);
+        }
+        
+        console.log('👥 Executing query:', query, 'with params:', params);
+        const result = await pool.query(query, params);
+        console.log('👥 Found guests:', result.rows.length);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Guests fetch error:", error);
+        res.status(500).json({ error: "Failed to fetch guests" });
+    }
+});
+
+app.put("/api/guests/:id", authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Updating guest:', id, 'with data:', req.body);
+        
+        const {
+            name,
+            email,
+            phone,
+            side,
+            rsvpStatus
+        } = req.body;
+        
+        const result = await pool.query(
+            `UPDATE guests 
+            SET name = $1, email = $2, phone = $3, side = $4, rsvp_status = $5, updated_at = NOW()
+            WHERE id = $6 
+            RETURNING *`,
+            [name, email, phone, side, rsvpStatus, id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Guest not found" });
+        }
+        
+        const guest = result.rows[0];
+        console.log('Guest updated:', guest.id);
+        res.json(guest);
+    } catch (error) {
+        console.error("Guest update error:", error);
+        res.status(400).json({ error: "Failed to update guest" });
+    }
+});
+
+app.delete("/api/guests/:id", authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Deleting guest:', id);
+        
+        const result = await pool.query(
+            'DELETE FROM guests WHERE id = $1 RETURNING *',
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Guest not found" });
+        }
+        
+        console.log('Guest deleted:', id);
+        res.json({ message: "Guest deleted successfully" });
+    } catch (error) {
+        console.error("Guest deletion error:", error);
+        res.status(400).json({ error: "Failed to delete guest" });
+    }
+});
+
+// Budget routes
+app.post("/api/budget", authenticateUser, async (req, res) => {
+    try {
+        console.log('Creating budget item:', req.body);
+        
+        const {
+            category,
+            vendor,
+            estimatedAmount,
+            paidAmount = 0,
+            status = 'pending',
+            paidBy,
+            eventId,
+            weddingProfileId
+        } = req.body;
+        
+        const result = await pool.query(
+            `INSERT INTO budget_items 
+            (category, vendor, estimated_amount, paid_amount, status, paid_by, event_id, wedding_profile_id) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            RETURNING *`,
+            [category, vendor, estimatedAmount, paidAmount, status, paidBy, eventId, weddingProfileId]
+        );
+        
+        const budgetItem = result.rows[0];
+        console.log('Budget item created:', budgetItem.id);
+        res.status(201).json(budgetItem);
+    } catch (error) {
+        console.error("Budget item creation error:", error);
+        res.status(400).json({ error: "Failed to create budget item" });
+    }
+});
+
+app.get("/api/budget", authenticateUser, async (req, res) => {
+    try {
+        console.log('💰 Budget request received');
+        console.log('💰 Query params:', req.query);
+        
+        const { weddingProfileId } = req.query;
+        
+        let query = 'SELECT * FROM budget_items';
+        let params = [];
+        
+        if (weddingProfileId) {
+            query += ' WHERE wedding_profile_id = $1';
+            params.push(weddingProfileId);
+        }
+        
+        console.log('💰 Executing query:', query, 'with params:', params);
+        const result = await pool.query(query, params);
+        console.log('💰 Found budget items:', result.rows.length);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Budget fetch error:", error);
+        res.status(500).json({ error: "Failed to fetch budget items" });
+    }
+});
+
+app.put("/api/budget/:id", authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Updating budget item:', id, 'with data:', req.body);
+        
+        const {
+            category,
+            vendor,
+            estimatedAmount,
+            paidAmount,
+            status,
+            paidBy,
+            eventId
+        } = req.body;
+        
+        const result = await pool.query(
+            `UPDATE budget_items 
+            SET category = $1, vendor = $2, estimated_amount = $3, paid_amount = $4, status = $5, paid_by = $6, event_id = $7, updated_at = NOW()
+            WHERE id = $8 
+            RETURNING *`,
+            [category, vendor, estimatedAmount, paidAmount, status, paidBy, eventId, id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Budget item not found" });
+        }
+        
+        const budgetItem = result.rows[0];
+        console.log('Budget item updated:', budgetItem.id);
+        res.json(budgetItem);
+    } catch (error) {
+        console.error("Budget item update error:", error);
+        res.status(400).json({ error: "Failed to update budget item" });
+    }
+});
+
+app.delete("/api/budget/:id", authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Deleting budget item:', id);
+        
+        const result = await pool.query(
+            'DELETE FROM budget_items WHERE id = $1 RETURNING *',
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Budget item not found" });
+        }
+        
+        console.log('Budget item deleted:', id);
+        res.json({ message: "Budget item deleted successfully" });
+    } catch (error) {
+        console.error("Budget item deletion error:", error);
+        res.status(400).json({ error: "Failed to delete budget item" });
+    }
+});
+
+// Vendor routes
+app.post("/api/vendors", authenticateUser, async (req, res) => {
+    try {
+        console.log('Creating vendor:', req.body);
+        
+        const {
+            name,
+            category,
+            contactPerson,
+            email,
+            phone,
+            address,
+            securityDeposit = 0,
+            totalAmount = 0,
+            weddingProfileId
+        } = req.body;
+        
+        const result = await pool.query(
+            `INSERT INTO vendors 
+            (name, category, contact_person, email, phone, address, security_deposit, total_amount, wedding_profile_id) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+            RETURNING *`,
+            [name, category, contactPerson, email, phone, address, securityDeposit, totalAmount, weddingProfileId]
+        );
+        
+        const vendor = result.rows[0];
+        console.log('Vendor created:', vendor.id);
+        res.status(201).json(vendor);
+    } catch (error) {
+        console.error("Vendor creation error:", error);
+        res.status(400).json({ error: "Failed to create vendor" });
+    }
+});
+
+app.get("/api/vendors", authenticateUser, async (req, res) => {
+    try {
+        console.log('🏢 Vendors request received');
+        console.log('🏢 Query params:', req.query);
+        
+        const { weddingProfileId } = req.query;
+        
+        let query = 'SELECT * FROM vendors';
+        let params = [];
+        
+        if (weddingProfileId) {
+            query += ' WHERE wedding_profile_id = $1';
+            params.push(weddingProfileId);
+        }
+        
+        console.log('🏢 Executing query:', query, 'with params:', params);
+        const result = await pool.query(query, params);
+        console.log('🏢 Found vendors:', result.rows.length);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Vendors fetch error:", error);
+        res.status(500).json({ error: "Failed to fetch vendors" });
+    }
+});
+
+app.put("/api/vendors/:id", authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Updating vendor:', id, 'with data:', req.body);
+        
+        const {
+            name,
+            category,
+            contactPerson,
+            email,
+            phone,
+            address,
+            securityDeposit,
+            totalAmount
+        } = req.body;
+        
+        const result = await pool.query(
+            `UPDATE vendors 
+            SET name = $1, category = $2, contact_person = $3, email = $4, phone = $5, address = $6, security_deposit = $7, total_amount = $8, updated_at = NOW()
+            WHERE id = $9 
+            RETURNING *`,
+            [name, category, contactPerson, email, phone, address, securityDeposit, totalAmount, id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Vendor not found" });
+        }
+        
+        const vendor = result.rows[0];
+        console.log('Vendor updated:', vendor.id);
+        res.json(vendor);
+    } catch (error) {
+        console.error("Vendor update error:", error);
+        res.status(400).json({ error: "Failed to update vendor" });
+    }
+});
+
+app.delete("/api/vendors/:id", authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log('Deleting vendor:', id);
+        
+        const result = await pool.query(
+            'DELETE FROM vendors WHERE id = $1 RETURNING *',
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Vendor not found" });
+        }
+        
+        console.log('Vendor deleted:', id);
+        res.json({ message: "Vendor deleted successfully" });
+    } catch (error) {
+        console.error("Vendor deletion error:", error);
+        res.status(400).json({ error: "Failed to delete vendor" });
+    }
+});
+
 // Catch-all route for SPA
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
