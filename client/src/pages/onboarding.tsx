@@ -81,7 +81,7 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
       title: 'Couple Details',
       description: 'Tell us about the happy couple',
       icon: Heart,
-      fields: ['brideName', 'groomName', 'weddingDate']
+      fields: ['brideName', 'groomName', 'weddingStartDate', 'weddingEndDate']
     },
     {
       title: 'Wedding Location',
@@ -118,18 +118,22 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
   };
 
   const onSubmit = async (data: OnboardingFormData) => {
+    console.log('🚀 Form submission started with data:', data);
     setIsLoading(true);
     
     try {
+      console.log('📡 Making API request to /api/wedding-profile...');
       const response = await apiRequest('POST', '/api/wedding-profile', {
         ...data,
         userId: user.id,
         isComplete: true,
       });
+      console.log('✅ API response received:', response);
       const weddingProfile = await response.json();
+      console.log('📋 Wedding profile created:', weddingProfile);
       onComplete(weddingProfile);
     } catch (err) {
-      console.error('Failed to save wedding profile:', err);
+      console.error('❌ Failed to save wedding profile:', err);
     } finally {
       setIsLoading(false);
     }
@@ -139,13 +143,22 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
     const currentFields = steps[currentStep].fields;
     const values = form.getValues();
     
-    return currentFields.every(field => {
+    const isValid = currentFields.every(field => {
       const value = values[field as keyof OnboardingFormData];
       if (field === 'functions') {
         return Array.isArray(value) && value.length > 0;
       }
       return value !== '' && value !== 0;
     });
+    
+    console.log('🔍 Step validation:', {
+      currentStep,
+      currentFields,
+      values,
+      isValid
+    });
+    
+    return isValid;
   };
 
   const handleCancel = () => {
@@ -429,6 +442,11 @@ export default function Onboarding({ user, onComplete }: OnboardingProps) {
                     type="submit"
                     disabled={!isStepValid() || isLoading}
                     className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600"
+                    onClick={() => {
+                      console.log('🔘 Complete Setup button clicked!');
+                      console.log('Form is valid:', isStepValid());
+                      console.log('Is loading:', isLoading);
+                    }}
                   >
                     {isLoading ? 'Saving...' : 'Complete Setup'}
                   </Button>
