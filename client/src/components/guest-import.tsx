@@ -31,6 +31,9 @@ export function GuestImport() {
   });
 
   const capitalizeWords = (str: string) => {
+    if (!str || typeof str !== 'string') {
+      return '';
+    }
     return str.split(' ').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ');
@@ -42,7 +45,7 @@ export function GuestImport() {
         throw new Error('Wedding profile not found');
       }
 
-      const lines = data.guestList.split('\n').filter(line => line.trim());
+      const lines = (data.guestList || '').split('\n').filter(line => line.trim());
       const guests = lines.map(line => {
         const parts = line.split(',');
         const name = parts[0]?.trim();
