@@ -82,7 +82,13 @@ export default function App() {
             
             // Check if events exist for this profile
             console.log('📅 Checking events for profile ID:', profile.id);
-            const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
+            console.log('📅 Profile ID type:', typeof profile.id);
+            console.log('📅 Profile ID value:', profile.id);
+            
+            const eventsUrl = `/api/events?weddingProfileId=${profile.id}`;
+            console.log('📅 Events URL:', eventsUrl);
+            
+            const eventsResponse = await apiRequest('GET', eventsUrl);
             const events = await eventsResponse.json();
             
             // If no events exist, user needs to set up events
@@ -132,7 +138,13 @@ export default function App() {
 
         // Check if events exist for this profile
         console.log('📅 Checking events for profile ID:', profile.id);
-        const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
+        console.log('📅 Profile ID type:', typeof profile.id);
+        console.log('📅 Profile ID value:', profile.id);
+        
+        const eventsUrl = `/api/events?weddingProfileId=${profile.id}`;
+        console.log('📅 Events URL:', eventsUrl);
+        
+        const eventsResponse = await apiRequest('GET', eventsUrl);
         const events = await eventsResponse.json();
 
         // If no events exist, user needs to set up events

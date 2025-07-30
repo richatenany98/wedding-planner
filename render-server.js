@@ -368,9 +368,27 @@ app.post("/api/wedding-profile", authenticateUser, async (req, res) => {
             [weddingProfile.id, req.session.userId]
         );
         
+        // Transform snake_case to camelCase for frontend
+        const transformedProfile = {
+            id: weddingProfile.id,
+            brideName: weddingProfile.bride_name,
+            groomName: weddingProfile.groom_name,
+            weddingStartDate: weddingProfile.wedding_start_date,
+            weddingEndDate: weddingProfile.wedding_end_date,
+            venue: weddingProfile.venue,
+            city: weddingProfile.city,
+            state: weddingProfile.state,
+            guestCount: weddingProfile.guest_count,
+            budget: weddingProfile.budget,
+            functions: weddingProfile.functions,
+            isComplete: weddingProfile.is_complete,
+            createdAt: weddingProfile.created_at,
+            updatedAt: weddingProfile.updated_at
+        };
+        
         console.log('Wedding profile created:', weddingProfile.id);
         console.log('User updated with wedding profile ID:', req.session.userId);
-        res.status(201).json(weddingProfile);
+        res.status(201).json(transformedProfile);
     } catch (error) {
         console.error("Wedding profile creation error:", error);
         res.status(400).json({ error: "Failed to create wedding profile" });
@@ -390,7 +408,27 @@ app.get("/api/wedding-profile/:id", authenticateUser, async (req, res) => {
             return res.status(404).json({ error: "Wedding profile not found" });
         }
         
-        res.json(result.rows[0]);
+        // Transform snake_case to camelCase for frontend
+        const profile = result.rows[0];
+        const transformedProfile = {
+            id: profile.id,
+            brideName: profile.bride_name,
+            groomName: profile.groom_name,
+            weddingStartDate: profile.wedding_start_date,
+            weddingEndDate: profile.wedding_end_date,
+            venue: profile.venue,
+            city: profile.city,
+            state: profile.state,
+            guestCount: profile.guest_count,
+            budget: profile.budget,
+            functions: profile.functions,
+            isComplete: profile.is_complete,
+            createdAt: profile.created_at,
+            updatedAt: profile.updated_at
+        };
+        
+        console.log('📋 Wedding profile fetched:', transformedProfile);
+        res.json(transformedProfile);
     } catch (error) {
         console.error("Wedding profile fetch error:", error);
         res.status(500).json({ error: "Failed to fetch wedding profile" });
