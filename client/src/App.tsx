@@ -80,12 +80,16 @@ function App() {
   }, []);
 
   const handleLogin = async (userData: User, options: { isNew: boolean } = { isNew: false }): Promise<void> => {
+    console.log('🔐 Login successful! User data:', userData);
+    console.log('🔐 User has weddingProfileId:', userData.weddingProfileId);
     setUser(userData);
 
     if (userData.weddingProfileId) {
+      console.log('📋 User has wedding profile, fetching it...');
       try {
         const response = await apiRequest('GET', `/api/wedding-profile/${userData.weddingProfileId}`);
         const profile = await response.json();
+        console.log('📋 Wedding profile fetched:', profile);
         setWeddingProfile(profile);
 
         // Check if events exist for this profile
@@ -94,14 +98,18 @@ function App() {
 
         // If no events exist, user needs to set up events
         if (events.length === 0) {
+          console.log('📅 No events found, showing event setup');
           setNeedsEventSetup(true);
+        } else {
+          console.log('📅 Events found, going to dashboard');
         }
       } catch (error) {
-        console.error('Failed to fetch wedding profile:', error);
+        console.error('❌ Failed to fetch wedding profile:', error);
         // If wedding profile fetch fails, show onboarding
         setShowOnboarding(true);
       }
     } else {
+      console.log('📋 User has no wedding profile, showing onboarding');
       // User doesn't have a wedding profile, show onboarding
       setShowOnboarding(true);
     }

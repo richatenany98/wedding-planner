@@ -147,7 +147,20 @@ async function getUserByUsername(username) {
             'SELECT * FROM users WHERE username = $1',
             [username]
         );
-        return result.rows[0];
+        const user = result.rows[0];
+        if (user) {
+            // Transform snake_case to camelCase for frontend
+            return {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                role: user.role,
+                weddingProfileId: user.wedding_profile_id, // Transform this field
+                createdAt: user.created_at,
+                updatedAt: user.updated_at
+            };
+        }
+        return null;
     } catch (error) {
         console.error('Database error:', error);
         return null;
@@ -160,7 +173,20 @@ async function getUser(id) {
             'SELECT * FROM users WHERE id = $1',
             [id]
         );
-        return result.rows[0];
+        const user = result.rows[0];
+        if (user) {
+            // Transform snake_case to camelCase for frontend
+            return {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                role: user.role,
+                weddingProfileId: user.wedding_profile_id, // Transform this field
+                createdAt: user.created_at,
+                updatedAt: user.updated_at
+            };
+        }
+        return null;
     } catch (error) {
         console.error('Database error:', error);
         return null;
