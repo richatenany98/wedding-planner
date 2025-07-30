@@ -108,16 +108,25 @@ function App() {
   };
 
   const handleOnboardingComplete = async (profile: WeddingProfile) => {
+    console.log('🎉 Onboarding completed! Profile:', profile);
     setWeddingProfile(profile);
     
     // Update user with wedding profile ID
     if (user) {
       const updatedUser = { ...user, weddingProfileId: profile.id };
       setUser(updatedUser);
+      // Save updated user to localStorage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      console.log('👤 Updated user with wedding profile ID:', updatedUser);
     }
     
-    // Check if we need to set up events
-    setNeedsEventSetup(true);
+    // Save wedding profile to localStorage
+    localStorage.setItem('weddingProfile', JSON.stringify(profile));
+    
+    // Hide onboarding and go directly to dashboard
+    setShowOnboarding(false);
+    setNeedsEventSetup(false);
+    console.log('✅ Routing to dashboard...');
   };
 
   const handleEventSetupComplete = () => {
@@ -154,22 +163,38 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {!user ? (
-          <Login onLogin={(userData, options) => handleLogin(userData, options)} />
-        ) : showOnboarding ? (
-          <Onboarding user={user} onComplete={handleOnboardingComplete} />
-        ) : !weddingProfile ? (
-          <Onboarding user={user} onComplete={handleOnboardingComplete} />
-        ) : needsEventSetup ? (
-          <EventLogistics weddingProfile={weddingProfile} onComplete={handleEventSetupComplete} />
-        ) : (
-          <div className="min-h-screen flex flex-col lg:flex-row">
-            <Sidebar weddingProfile={weddingProfile} onLogout={handleLogout} />
-            <main className="flex-1 overflow-hidden page-transition">
-              <Router weddingProfile={weddingProfile} />
-            </main>
-          </div>
-        )}
+        {(() => {
+          console.log('🔍 Render state:', {
+            hasUser: !!user,
+            showOnboarding,
+            hasWeddingProfile: !!weddingProfile,
+            needsEventSetup
+          });
+          
+          if (!user) {
+            console.log('📱 Rendering: Login');
+            return <Login onLogin={(userData, options) => handleLogin(userData, options)} />;
+          } else if (showOnboarding) {
+            console.log('📱 Rendering: Onboarding');
+            return <Onboarding user={user} onComplete={handleOnboardingComplete} />;
+          } else if (!weddingProfile) {
+            console.log('📱 Rendering: Onboarding (no profile)');
+            return <Onboarding user={user} onComplete={handleOnboardingComplete} />;
+          } else if (needsEventSetup) {
+            console.log('📱 Rendering: Event Setup');
+            return <EventLogistics weddingProfile={weddingProfile} onComplete={handleEventSetupComplete} />;
+          } else {
+            console.log('📱 Rendering: Dashboard');
+            return (
+              <div className="min-h-screen flex flex-col lg:flex-row">
+                <Sidebar weddingProfile={weddingProfile} onLogout={handleLogout} />
+                <main className="flex-1 overflow-hidden page-transition">
+                  <Router weddingProfile={weddingProfile} />
+                </main>
+              </div>
+            );
+          }
+        })()}
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
