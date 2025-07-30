@@ -90,24 +90,24 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS - Allow all origins for now to fix session issues
+// CORS - Very permissive for Render.com debugging
 app.use(cors({
-    origin: true, // Allow all origins temporarily
+    origin: true, // Allow all origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
 }));
 
-// Sessions - Updated configuration for Render.com
+// Sessions - More permissive for debugging
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: true,
-    saveUninitialized: false,
+    saveUninitialized: true, // Allow uninitialized sessions
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // Render uses HTTPS
+        secure: false, // Set to false for debugging
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        sameSite: 'lax' // More permissive
     },
     name: 'weddingwizard.sid'
 }));
