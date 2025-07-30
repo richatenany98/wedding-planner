@@ -45,8 +45,10 @@ export default function App() {
     // Check if user is already logged in by checking the server session
     const checkAuthStatus = async () => {
       try {
+        console.log('🔍 Checking authentication status...');
         const response = await apiRequest('GET', '/api/auth/me');
         const userData = await response.json();
+        console.log('🔍 Active session found:', userData);
         setUser(userData);
         
         if (userData.weddingProfileId) {
@@ -65,13 +67,17 @@ export default function App() {
             }
           } catch (error) {
             console.error('Failed to fetch wedding profile:', error);
+            // If wedding profile fetch fails, show onboarding
+            setShowOnboarding(true);
           }
+        } else {
+          // User has no wedding profile, show onboarding
+          setShowOnboarding(true);
         }
       } catch (error) {
-        console.log('No active session found');
-        // Clear any stale localStorage data
-        localStorage.removeItem('user');
-        localStorage.removeItem('weddingProfile');
+        console.log('🔍 No active session found - user needs to login');
+        // Don't clear localStorage here - let the login flow handle it
+        // This prevents clearing data when user is in the middle of login
       } finally {
         setIsLoading(false);
       }
@@ -207,7 +213,9 @@ export default function App() {
             hasUser: !!user,
             showOnboarding,
             hasWeddingProfile: !!weddingProfile,
-            needsEventSetup
+            needsEventSetup,
+            isLoading,
+            isRouting
           });
           
           if (!user) {
