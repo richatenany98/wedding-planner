@@ -32,12 +32,13 @@ function Router({ weddingProfile }: { weddingProfile: WeddingProfile }) {
   );
 }
 
-function App() {
+export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [weddingProfile, setWeddingProfile] = useState<WeddingProfile | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [needsEventSetup, setNeedsEventSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -117,6 +118,7 @@ function App() {
 
   const handleOnboardingComplete = async (profile: WeddingProfile) => {
     console.log('🎉 Onboarding completed! Profile:', profile);
+    setIsRouting(true); // Show loading while routing
     setWeddingProfile(profile);
     
     // Update user with wedding profile ID
@@ -131,10 +133,32 @@ function App() {
     // Save wedding profile to localStorage
     localStorage.setItem('weddingProfile', JSON.stringify(profile));
     
-    // Hide onboarding and go directly to dashboard
+    // Hide onboarding
     setShowOnboarding(false);
-    setNeedsEventSetup(false);
-    console.log('✅ Routing to dashboard...');
+    
+    // Check if events exist for this profile
+    try {
+      console.log('📅 Checking for existing events...');
+      const eventsResponse = await apiRequest('GET', `/api/events?weddingProfileId=${profile.id}`);
+      const events = await eventsResponse.json();
+      console.log('📅 Found events:', events);
+
+      // If no events exist, user needs to set up events
+      if (events.length === 0) {
+        console.log('📅 No events found, showing event setup');
+        setNeedsEventSetup(true);
+      } else {
+        console.log('📅 Events found, going to dashboard');
+        setNeedsEventSetup(false);
+      }
+    } catch (error) {
+      console.error('❌ Failed to check events:', error);
+      // If we can't check events, assume we need event setup
+      setNeedsEventSetup(true);
+    }
+    
+    setIsRouting(false); // Hide loading
+    console.log('✅ Routing decision made');
   };
 
   const handleEventSetupComplete = () => {
@@ -154,7 +178,7 @@ function App() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isRouting) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -162,7 +186,9 @@ function App() {
           <h2 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-2">
             WeddingWizard
           </h2>
-          <p className="text-neutral-600 animate-pulse">Loading your magical journey...</p>
+          <p className="text-neutral-600 animate-pulse">
+            {isRouting ? 'Setting up your dashboard...' : 'Loading your magical journey...'}
+          </p>
         </div>
       </div>
     );
@@ -208,5 +234,3 @@ function App() {
     </QueryClientProvider>
   );
 }
-
-export default App;
