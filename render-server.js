@@ -90,23 +90,21 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS - Updated for better session handling
+// CORS - Allow all origins for now to fix session issues
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-        ? ['https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net', 'https://wedding-planner-hjgegeadbnaqfkge.canadacentral-01.azurewebsites.net/']
-        : ['http://localhost:5000', 'http://localhost:5173'],
+    origin: true, // Allow all origins temporarily
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
-// Sessions - Updated configuration
+// Sessions - Updated configuration for Render.com
 app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: true,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production' && process.env.HTTPS === 'true',
+        secure: process.env.NODE_ENV === 'production', // Render uses HTTPS
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
@@ -130,6 +128,16 @@ app.get('/health', (_req, res) => {
 // API test route
 app.get('/api/test', (_req, res) => {
     res.json({ message: "API is working", timestamp: new Date().toISOString() });
+});
+
+// Session test route
+app.get('/api/session-test', (req, res) => {
+    res.json({ 
+        sessionId: req.sessionID,
+        userId: req.session.userId,
+        hasSession: !!req.session.userId,
+        session: req.session
+    });
 });
 
 // Database helper functions
@@ -164,9 +172,12 @@ function authenticateUser(req, res, next) {
     console.log('🔐 Auth check - Session ID:', req.sessionID);
     console.log('🔐 Auth check - User ID:', req.session.userId);
     console.log('🔐 Auth check - Session:', req.session);
+    console.log('🔐 Auth check - Headers:', req.headers);
+    console.log('🔐 Auth check - Cookies:', req.headers.cookie);
     
     if (!req.session.userId) {
         console.log('❌ Authentication failed: No user ID in session');
+        console.log('❌ Full session object:', req.session);
         return res.status(401).json({ error: "Not authenticated" });
     }
     
@@ -311,13 +322,14 @@ app.post("/api/wedding-profile", authenticateUser, async (req, res) => {
         
         const weddingProfile = result.rows[0];
         
-        // Update user with wedding profile ID
+        // Update user with wedding profile ID - use session user ID, not request body
         await pool.query(
             'UPDATE users SET wedding_profile_id = $1 WHERE id = $2',
             [weddingProfile.id, req.session.userId]
         );
         
         console.log('Wedding profile created:', weddingProfile.id);
+        console.log('User updated with wedding profile ID:', req.session.userId);
         res.status(201).json(weddingProfile);
     } catch (error) {
         console.error("Wedding profile creation error:", error);
